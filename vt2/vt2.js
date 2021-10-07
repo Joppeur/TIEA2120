@@ -102,7 +102,7 @@ window.addEventListener("load", function() {
         
         joukkueform.addEventListener("submit", function(e) {
             e.preventDefault();
-            lisaaJoukkue(data, 1234);
+            lisaaJoukkue(data);
         });
 
 
@@ -112,7 +112,7 @@ window.addEventListener("load", function() {
 
 
 /**
- * Loppui tyostämisaika. Tein raakileen.
+ * 
  * @param {*} data 
  * @param {*} sarja 
  */
@@ -129,6 +129,10 @@ function lisaaJoukkue(data, sarja) {
         jasenet.push(input.value);
     }
 
+    if (!sarja) {
+        sarja = getSarjanId('8h');
+    }
+
     let joukkue = {
         nimi: nimi,
         sarja: sarja,
@@ -137,7 +141,11 @@ function lisaaJoukkue(data, sarja) {
     };
 
     data.joukkueet.push(joukkue);
-        
+    lomake.reset();
+
+
+    let tulokset = document.querySelector("#tupa > table");
+    lisaaKaikkiJoukkueet(tulokset, data.joukkueet);
 }
 
 
@@ -155,10 +163,10 @@ function getJoukkueByNimi(nimi) {
 
 
 function korjaaJoukkueForm() {
-
+    
     let fieldset = document.querySelector("#joukkuelomake > fieldset");
     fieldset.setAttribute('id', 'joukkuefieldset');
-
+    
     let label = document.querySelector("#joukkuefieldset > p:nth-child(2) > label");
     label.setAttribute('for', 'nimi1');
     label.firstElementChild.setAttribute('id', 'nimi1');
@@ -171,9 +179,13 @@ function korjaaJoukkueForm() {
         fieldset2.removeChild(parent.lastChild);
     }
     insert.insertAdjacentElement('afterend', fieldset2);
+    
+    addJasenInput2();
+    addJasenInput2();
+    
+    let joukkueNimiInput = document.getElementById("nimi1");
+    joukkueNimiInput.addEventListener('input', addJasenInput2);
 
-    addJasenInput2();
-    addJasenInput2();
     
     label.firstElementChild.addEventListener('input', paivita_nimi);
 
@@ -216,11 +228,13 @@ function createJasenInput() {
 
 
 function addJasenInput2(e) {
-    let fieldset = document.getElementById("jasenet");
+    let lomake = document.getElementById('joukkuelomake');
+    let fieldset = lomake.jasenet;
     let inputit = fieldset.getElementsByTagName('input');
     let viimeinen_tyhja = -1;
     let sisaltoa = 0;
-    let button = fieldset.getElementById('joukkue');
+    let joukkueNimiInput = lomake.nimi;
+    let button = lomake.joukkue;
 
     
     // Kaydaan inputit viimeisesta alkaen
@@ -243,7 +257,7 @@ function addJasenInput2(e) {
         }
     }
     
-    if(sisaltoa >= 2) {
+    if(joukkueNimiInput.value != "" && sisaltoa >= 2) {
         button.disabled = false;
     } else {
         button.disabled = true;
@@ -416,6 +430,20 @@ function getSarjanNimi(sarjaid) {
 }
 
 
+/**
+ * Hakee sarjan nimella sarjan id:m.
+ * @param {*} sarjaid 
+ */
+ function getSarjanId(nimi) {
+    for (const sarja of data.sarjat) {
+        if (sarja.nimi === nimi) {
+            return sarja.id;
+        }
+    }
+    return 'xx';
+}
+
+
 // todo(?) n argumentin maarittaman cellin mukaan sorttaus
 // mahd riski kun sortataan pisteilla: verrataan tekstia eika numeroita,
 // mutta koska toimii niin olkoot for now
@@ -501,6 +529,16 @@ function sortByColumn(taulukko, first, firstAsc, second, secondAsc, third, third
 }
 
 function lisaaKaikkiJoukkueet(taulukko, joukkueet) { 
+    // let uusiTaulukko = document.createElement('table');
+
+    // tyhjataan mahd aiemmat lukuunottamatta captionia ja ekaa tr:aa
+    for (let i = 2; i < taulukko.children.length; i++) {
+        const element = taulukko.children[i];
+        taulukko.removeChild(element);  
+    }
+
+
+    // uusiTaulukko = taulukko.children.splice(1);
     for (const joukkue of joukkueet) {
         lisaaRiviTaulukkoon(taulukko, joukkue);
     }
@@ -758,6 +796,7 @@ function getRastiKoodiById(code) {
  * @param {object} rastit Taulukko rasteista, jotka puhdistetaan
  */
 function puhdistaRastit(rastit) {
+    if(!rastit) { return []; }
     let rastit2 = rastit.filter((el) => onkoRasti(el));
     return rastit2;
 }
