@@ -61,24 +61,30 @@ function muokkaa(e) {
 
         for (let i = 0; i < muokattava_joukkue["jasenet"].length; i++) {
             let nimi = muokattava_joukkue["jasenet"][i];
-            joukJasenet.appendChild(document.createTextNode(nimi));
-            if (i !== muokattava_joukkue["jasenet"].length - 1) {
-                joukJasenet.appendChild(document.createTextNode(', '));
+            if(nimi !== "") {
+                joukJasenet.appendChild(document.createTextNode(nimi));
+                if (i !== muokattava_joukkue["jasenet"].length - 1) {
+                    joukJasenet.appendChild(document.createTextNode(', '));
+                }
             }
         }
         alkuperainen_joukkue["listaus"].jasenet.appendChild(joukJasenet);
 
-        lomake.joukkue.hidden = false;
-        lomake.muokkaa.hidden = true;
-
+        
+        
     }
+    lomake.joukkue.hidden = false;
+    lomake.muokkaa.hidden = true;
+    muokattava_joukkue = {};
 
     // Tyhjennetaan form ja disable lisaa joukkue-nappi
     lomake.reset();
     lomake.joukkue.disabled = true;
 
-    let tulokset = document.querySelector("#tupa > table");
+    // Poistetaan ylimaaraiset inputit
+    addJasenInput();
 
+    let tulokset = document.querySelector("#tupa > table");
     sortByColumn(tulokset, 0, true, 2, false, 1, true);
 }
 
@@ -90,6 +96,7 @@ function muokkaa(e) {
  */
 function lisaaJoukkue(data, sarja) {
 
+    //muokattava_joukkue = {};
     //let lomake = document.getElementById('joukkuelomake');
     let lomake = JOUKKUE_LOMAKE;
     let inputit = lomake.getElementsByTagName('input');
@@ -115,6 +122,7 @@ function lisaaJoukkue(data, sarja) {
 
     data.joukkueet.push(joukkue);
     lomake.reset();
+    addJasenInput();
 
 
     let tulokset = document.querySelector("#tupa > table");
@@ -164,8 +172,6 @@ function korjaaJoukkueForm() {
 
     function paivita_nimi(e) {
         muokattava_joukkue["nimi"] = e.target.value;
-        console.log('alkup: ' + alkuperainen_joukkue["nimi"]);
-        console.log('muokat: ' + muokattava_joukkue["nimi"]);
     }
 
     // Piilotetaan 'Tallenna muutokset'-nappi
@@ -186,19 +192,19 @@ function korjaaJoukkueForm() {
 }
 
 
-function checkJasenInputValidity() {
-    // let lomake = document.getElementById("joukkuelomake");
-    let lomake = JOUKKUE_LOMAKE;
-    let fieldset = lomake.jasenet;
-    let inputit = fieldset.getElementsByTagName('input');
+// function checkJasenInputValidity() {
+//     // let lomake = document.getElementById("joukkuelomake");
+//     let lomake = JOUKKUE_LOMAKE;
+//     let fieldset = lomake.jasenet;
+//     let inputit = fieldset.getElementsByTagName('input');
 
-    if (inputit.length >= 2 && lomake.nimi1.value.trim() != "") {
-        // Joukkueformin lisaa joukkue nappain -> enabled.
-        lomake.joukkue.disabled = false;
-    } else {
-        lomake.joukkue.disabled = true;
-    }
-}
+//     if (inputit.length >= 2 && lomake.nimi1.value.trim() != "") {
+//         // Joukkueformin lisaa joukkue nappain -> enabled.
+//         lomake.joukkue.disabled = false;
+//     } else {
+//         lomake.joukkue.disabled = true;
+//     }
+// }
 
 function createJasenInput() {
     let label = document.createElement("label");
@@ -208,6 +214,9 @@ function createJasenInput() {
     input.addEventListener("input", addJasenInput);
     label.appendChild(input);
     return label;
+
+
+    
 }
 
 
@@ -216,17 +225,24 @@ function createJasenInput() {
  * @param {*} e 
  */
 function addJasenInput(e) {
+
+    
     let lomake = JOUKKUE_LOMAKE;
     let fieldset = lomake.jasenet;
-    let inputit = fieldset.getElementsByTagName('input');
+    
     let viimeinen_tyhja = -1;
     let sisaltoa = 0;
     let joukkueNimiInput = lomake.nimi;
     let button = lomake.joukkue;
 
 
+
+    let inputit = fieldset.getElementsByTagName('input');
+
     // Kaydaan inputit viimeisesta alkaen
     let i;
+
+
     for (i = inputit.length - 1; i > -1; i--) {
         let input = inputit[i];
 
@@ -245,6 +261,9 @@ function addJasenInput(e) {
         }
     }
 
+
+    // Karvalakki validointi, jossa jasenen lisays estetaan disabloimalla nappula.
+    // Kunnon hackerman voisi tämän kiertää inspectorilla. Hänet estäisin tsekkaamalla napin painalluksen event listenerissa viela syotetyt tiedot.
     if (joukkueNimiInput.value != "" && sisaltoa >= 2) {
         button.disabled = false;
     } else {
@@ -265,23 +284,26 @@ function addJasenInput(e) {
             label.firstChild.nodeValue = "Jäsen " + (y + 1);
             inputit[y].setAttribute('name', `jasen${y + 1}`);
             inputit[y].indeksi = y;
-        }
 
-
-        if (muokattava_joukkue["jasenet"] !== undefined) {
+            
             {
                 let p = y;
-                newInput.removeEventListener('input', paivita_luku);
-                function paivita_luku(e) {
-                    if (e.target.value.trim() !== "") {
-
-                        muokattava_joukkue["jasenet"][p - 1] = e.target.value;
+                
+                let paivita_luku = function (e) {
+                        if (muokattava_joukkue["jasenet"]) {
+                        if(e.target.value === "") {
+                            muokattava_joukkue["jasenet"].splice(e.target.indeksi, 1);
+                        } else {
+                            muokattava_joukkue["jasenet"][e.target.indeksi] = e.target.value;
+                        }
                     }
+                    };
+                    
+                    inputit[y].removeEventListener('input', paivita_luku);
+                    inputit[y].addEventListener('input', paivita_luku);
                 }
-
-                newInput.addEventListener('input', paivita_luku);
             }
-        }
+        
     }
 }
 
@@ -293,45 +315,94 @@ function addJasenInput(e) {
  * @param {*} jasenet 
  */
 function addJasenInputWithExisting(parent, jasenet) {
-    let n;
-    if (jasenet === null) {
-        n = 2;
-    } else {
-        n = jasenet.length;
-    }
-
-
     while (parent.hasChildNodes()) {
         parent.removeChild(parent.lastChild);
     }
 
-    for (let index = 0; index < n; index++) {
+    let lomake = JOUKKUE_LOMAKE;
+    let fieldset = lomake.jasenet;
+    let inputit = fieldset.getElementsByTagName('input');
+    let viimeinen_tyhja = -1;
+    let sisaltoa = 0;
 
+    let i;
+    for (let index = 0; index < jasenet.length; index++) {
 
-        let uusiLabel = document.createElement("label");
-        uusiLabel.textContent = `Jäsen ${index + 1}`;
-        let input = document.createElement("input");
-        input.setAttribute('name', `jasen${index + 1}`);
-        input.setAttribute("type", "text");
-        input.indeksi = index;
+        let input = createJasenInput();
         if (jasenet !== null) {
-            input.value = jasenet[index];
+            input.firstElementChild.value = jasenet[index];
         }
+
+        //fieldset.appendChild(input);
+
+        parent.appendChild(input);
+    }
+
+
+
+    for (i = inputit.length - 1; i > -1; i--) {
+        let input = inputit[i];
+
+        if (viimeinen_tyhja > -1 && input.value.trim() == "" && inputit.length > 2) {
+            let poistettava = inputit[viimeinen_tyhja].parentNode;
+            fieldset.removeChild(poistettava);
+            viimeinen_tyhja = i;
+        }
+
+        if (viimeinen_tyhja == -1 && input.value.trim() == "" && inputit.length > 1) {
+            viimeinen_tyhja = i;
+        }
+
+        if (input.value !== "") {
+            sisaltoa++;
+        }
+    }
+
+
+    // //Tama estaisi muokkaamasta yhden jasenen joukkuetta lisaamatta toista jasenta.
+    // let button = lomake.muokkaa;
+    // if (joukkueNimiInput.value != "" && sisaltoa >= 2) {
+    //     button.disabled = false;
+    // } else {
+    //     button.disabled = true;
+    // }
+
+
+    if (viimeinen_tyhja == -1) {
+        let newInput = createJasenInput();
+        fieldset.appendChild(newInput);
+
+
+        let y;
+        // jos halutaan kenttiin numerointi
+        for (y = 0; y < inputit.length; y++) {
+            let input = inputit[y];
+            let label = inputit[y].parentNode;
+            label.firstChild.nodeValue = "Jäsen " + (y + 1);
+            inputit[y].setAttribute('name', `jasen${y + 1}`);
+            inputit[y].indeksi = y;
+        
 
         {
-            let p = index;
-            input.removeEventListener('input', paivita_luku);
-            function paivita_luku(e) {
-                muokattava_joukkue["jasenet"][p] = e.target.value;
-                console.log('alkup: ' + alkuperainen_joukkue["jasenet"][p]);
-                console.log('muokat: ' + muokattava_joukkue["jasenet"][p]);
-            }
+            let p = y;
+            let paivita_luku = function (e) {
+                if(muokattava_joukkue) {
+                    // kaksi ekaa inputtia kusee
+                    if(muokattava_joukkue["jasenet"] && e.target.value === "") {
+                        muokattava_joukkue["jasenet"].splice(p, 1);
+                    } else if (muokattava_joukkue["jasenet"]) {
+                        muokattava_joukkue["jasenet"][p] = e.target.value;
+                    }
+                }
 
+            };
+            input.removeEventListener('input', paivita_luku);
             input.addEventListener('input', paivita_luku);
         }
-        parent.appendChild(uusiLabel).appendChild(input);
+
+        }
     }
-    addJasenInput();
+
 }
 
 
@@ -349,7 +420,23 @@ function muokkaaJoukkue(e) {
     let fieldset = lomake.jasenet;
 
 
-    addJasenInputWithExisting(fieldset, joukkue.jasenet);
+    if (Array.isArray(joukkue.jasenet)) {
+        while (fieldset.hasChildNodes()) {
+            fieldset.removeChild(fieldset.lastChild);
+        }
+        for (let index = 0; index < joukkue.jasenet.length; index++) {
+
+            let input = createJasenInput();
+            input.firstElementChild.value = joukkue.jasenet[index];
+    
+            fieldset.appendChild(input);
+
+        }
+    }
+
+
+    //addJasenInputWithExisting(fieldset, joukkue.jasenet);
+    addJasenInput();
 
     // Piilotetaan "Lisaa joukkue"-nappi, ja naytetaan muokkaa
     lomake.joukkue.hidden = true;
@@ -497,11 +584,11 @@ function sortByColumn(taulukko, first, firstAsc, second, secondAsc, third, third
 
 function lisaaKaikkiJoukkueet(taulukko, joukkueet) {
 
-    // tyhjataan mahd aiemmat lukuunottamatta captionia ja ekaa tr:aa
-    for (let i = 2; i < taulukko.children.length; i++) {
-        const element = taulukko.children[i];
+    for (let i = taulukko.children.length; i > 2; i--) {
+        const element = taulukko.children[i-1];
         taulukko.removeChild(element);
     }
+
 
     // uusiTaulukko = taulukko.children.splice(1);
     for (const joukkue of joukkueet) {
@@ -561,54 +648,54 @@ function lisaaRiviTaulukkoon(taulukko, joukkue) {
 //https://domtool.yakshavings.co.uk/
 function lisaaRastiFieldset(parent) {
 
-    var fieldset1 = document.createElement('fieldset');
-    var legend1 = document.createElement('legend');
+    let fieldset1 = document.createElement('fieldset');
+    let legend1 = document.createElement('legend');
     fieldset1.appendChild(legend1);
 
-    var txt1 = document.createTextNode('Rastin tiedot');
+    let txt1 = document.createTextNode('Rastin tiedot');
     legend1.appendChild(txt1);
-    var label1 = document.createElement('label');
+    let label1 = document.createElement('label');
 
-    var span1 = document.createElement('span');
-    var txt2 = document.createTextNode('Lat');
+    let span1 = document.createElement('span');
+    let txt2 = document.createTextNode('Lat');
     span1.appendChild(txt2);
 
     label1.appendChild(span1);
 
-    var input1 = document.createElement('input');
+    let input1 = document.createElement('input');
     input1.setAttribute('type', 'text');
     input1.setAttribute('value', "");
     label1.appendChild(input1);
 
     fieldset1.appendChild(label1);
 
-    var label2 = document.createElement('label');
-    var span2 = document.createElement('span');
-    var txt3 = document.createTextNode('Lon');
+    let label2 = document.createElement('label');
+    let span2 = document.createElement('span');
+    let txt3 = document.createTextNode('Lon');
     span2.appendChild(txt3);
     label2.appendChild(span2);
-    var input2 = document.createElement('input');
+    let input2 = document.createElement('input');
     input2.setAttribute('type', 'text');
     input2.setAttribute('value', "");
 
     label2.appendChild(input2);
     fieldset1.appendChild(label2);
 
-    var label3 = document.createElement('label');
-    var span3 = document.createElement('span');
-    var txt4 = document.createTextNode('Koodi');
+    let label3 = document.createElement('label');
+    let span3 = document.createElement('span');
+    let txt4 = document.createTextNode('Koodi');
     span3.appendChild(txt4);
     label3.appendChild(span3);
-    var input3 = document.createElement('input');
+    let input3 = document.createElement('input');
     input3.setAttribute('type', 'text');
     input3.setAttribute('value', "");
 
     label3.appendChild(input3);
     fieldset1.appendChild(label3);
 
-    var button1 = document.createElement('button', 'lisaarasti');
+    let button1 = document.createElement('button', 'lisaarasti');
     button1.setAttribute('id', 'rasti');
-    var txt7 = document.createTextNode('Lisää rasti');
+    let txt7 = document.createTextNode('Lisää rasti');
     button1.appendChild(txt7);
     fieldset1.appendChild(button1);
 
