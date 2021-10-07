@@ -1,0 +1,25 @@
+
+
+fieldset {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    max-width: 300px;
+}
+
+fieldset label span{
+    display: inline-block;
+    min-width: 5em;
+}
+
+fieldset label input{
+    display: inline-block;
+    padding: 2px;
+    margin: 5px;
+}
+
+
+
+fieldset button {
+    max-width: 100px;
+}
