@@ -13,96 +13,74 @@ window.addEventListener("load", function () {
     let tulokset = document.querySelector("#tupa > table");
     tulokset.id = 'tulokset';
 
-
-    let lisaaRastiEl = document.forms[0];
     lisaaKaikkiJoukkueet(tulokset, data.joukkueet);
-    lisaaRastiLomake(lisaaRastiEl);
 
-    let rastiForm = document.forms[0];
+    let rastiLomake = document.forms[0];
+    lisaaRastiFieldset(rastiLomake);
 
-    lisaaPisteEl();
+    lisaaPisteEl(); // Lisaa tulokset tableen kohdan pisteille.
 
     // sorttaa ensisijaisesti sarjan kanssa (cell[0]) 
-    // ja toissijaisesti pisteiden kanssa (cell[1])
+    // ja toissijaisesti pisteiden kanssa (cell[2])
+    // kolmanneksi joukkueen nimen kanssa. (cell[1])
     sortByColumn(tulokset, 0, true, 2, false, 1, true);
-
-    //laskePisteet(data.joukkueet[0]);
+    
     korjaaJoukkueForm();
-
-
-
-
-
-    rastiForm.addEventListener("submit", function (e) {
+    
+    // Rastin lisays
+    rastiLomake.addEventListener("submit", function (e) {
         e.preventDefault();
-        lisaaRasti(rastiForm[1].value, rastiForm[2].value, rastiForm[3].value);
+        lisaaRasti(rastiLomake[1].value, rastiLomake[2].value, rastiLomake[3].value);
     });
-
-
-
-    // let joukkueform = document.getElementById('joukkuelomake');
-    let joukkueform = JOUKKUE_LOMAKE;
-
-    // Disabloidaan lisaa joukkue nappain. (Muutetaan jaseninputtien evenlistenereissa)
-    joukkueform.joukkue.disabled = true;
-
-    joukkueform.muokkaa.addEventListener("click", function (e) {
-        e.preventDefault();
-        alkuperainen_joukkue["nimi"] = muokattava_joukkue["nimi"];
-        alkuperainen_joukkue["jasenet"] = muokattava_joukkue["jasenet"];
-        alkuperainen_joukkue["listaus"]["nimi"].textContent = muokattava_joukkue["nimi"];
-
-
-        //lisaaKaikkiJoukkueet(tulokset, data.joukkueet);
-
-        //alkuperainen_joukkue["listaus"].jasenet = muokattava_joukkue["jasenet"].join(', ');
-
-        for (let index = 0; index < muokattava_joukkue["jasenet"].length; index++) {
-            let joukJasenet = document.createElement('span');
-
-
-            while (alkuperainen_joukkue["listaus"].jasenet.hasChildNodes()) {
-                alkuperainen_joukkue["listaus"].jasenet.lastChild.remove();
-            }
-
-
-            for (let i = 0; i < muokattava_joukkue["jasenet"].length; i++) {
-                let nimi = muokattava_joukkue["jasenet"][i];
-                joukJasenet.appendChild(document.createTextNode(nimi));
-                if (i !== muokattava_joukkue["jasenet"].length - 1) {
-                    joukJasenet.appendChild(document.createTextNode(', '));
-                }
-            }
-            alkuperainen_joukkue["listaus"].jasenet.appendChild(joukJasenet);
-
-            let lomake = JOUKKUE_LOMAKE;
-            lomake.joukkue.hidden = false;
-            lomake.muokkaa.hidden = true;
-
-            // let rivi = alkuperainen_joukkue["listaus"]["jasenet"];
-            // //rivi.textContent = muokattava_joukkue["jasenet"].join(', ');
-            // for (const el of alkuperainen_joukkue["listaus"].jasenet.childNodes) {
-            //     if(el.textValue !== ", ")
-            // }
-
-
-        }
-
-        // Tyhjennetaan form ja disable lisaa joukkue-nappi
-        joukkueform.reset();
-        joukkueform.joukkue.disabled = true;
-
-        sortByColumn(tulokset, 0, true, 2, false, 1, true);
-    });
-
-    joukkueform.addEventListener("submit", function (e) {
-        e.preventDefault();
-        lisaaJoukkue(data);
-    });
-
 
 });
 
+
+
+/**
+ * Eventlisteneri joukkueen muokkaa-napille
+ * @param {*} e 
+ */
+function muokkaa(e) {
+    let lomake = JOUKKUE_LOMAKE;
+
+    e.preventDefault();
+    alkuperainen_joukkue["nimi"] = muokattava_joukkue["nimi"];
+    alkuperainen_joukkue["jasenet"] = muokattava_joukkue["jasenet"];
+    alkuperainen_joukkue["listaus"]["nimi"].textContent = muokattava_joukkue["nimi"];
+
+
+    for (let index = 0; index < muokattava_joukkue["jasenet"].length; index++) {
+        let joukJasenet = document.createElement('span');
+
+
+        while (alkuperainen_joukkue["listaus"].jasenet.hasChildNodes()) {
+            alkuperainen_joukkue["listaus"].jasenet.lastChild.remove();
+        }
+
+
+        for (let i = 0; i < muokattava_joukkue["jasenet"].length; i++) {
+            let nimi = muokattava_joukkue["jasenet"][i];
+            joukJasenet.appendChild(document.createTextNode(nimi));
+            if (i !== muokattava_joukkue["jasenet"].length - 1) {
+                joukJasenet.appendChild(document.createTextNode(', '));
+            }
+        }
+        alkuperainen_joukkue["listaus"].jasenet.appendChild(joukJasenet);
+
+        lomake.joukkue.hidden = false;
+        lomake.muokkaa.hidden = true;
+
+    }
+
+    // Tyhjennetaan form ja disable lisaa joukkue-nappi
+    lomake.reset();
+    lomake.joukkue.disabled = true;
+
+    let tulokset = document.querySelector("#tupa > table");
+
+    sortByColumn(tulokset, 0, true, 2, false, 1, true);
+}
 
 
 /**
@@ -155,7 +133,6 @@ function getJoukkueByNimi(nimi) {
 }
 
 
-
 function korjaaJoukkueForm() {
     let fieldset = JOUKKUE_LOMAKE.querySelector('fieldset');
     fieldset.setAttribute('id', 'joukkuefieldset');
@@ -194,6 +171,18 @@ function korjaaJoukkueForm() {
     // Piilotetaan 'Tallenna muutokset'-nappi
     let lomake = fieldset.parentElement;
     lomake.muokkaa.hidden = true;
+
+
+    // Disabloidaan lisaa joukkue nappain. (Muutetaan jaseninputtien evenlistenereissa)
+    lomake.joukkue.disabled = true;
+
+    lomake.muokkaa.addEventListener("click", muokkaa); 
+
+    lomake.addEventListener("submit", function (e) {
+        e.preventDefault();
+        lisaaJoukkue(data);
+    });
+
 }
 
 
@@ -357,9 +346,8 @@ function muokkaaJoukkue(e) {
     let lomake = JOUKKUE_LOMAKE;
     lomake.nimi.value = muokattava_joukkue["nimi"];
 
-    let fieldset = JOUKKUE_LOMAKE.jasenet;
+    let fieldset = lomake.jasenet;
 
-    fieldset.jasenet = joukkue.jasenet;
 
     addJasenInputWithExisting(fieldset, joukkue.jasenet);
 
@@ -428,7 +416,7 @@ function getSarjanId(nimi) {
 function sortByColumn(taulukko, first, firstAsc, second, secondAsc, third, thirdAsc) {
     let rivit = [...taulukko.rows];
 
-    //Otetaan eka <td> elementti pois joka on Sarja Joukkue
+    //Otetaan eka <td> elementti pois joka on Sarja Joukkue Pisteet
     rivit.shift();
 
     let sorted = rivit.sort(function (a, b) {
@@ -506,15 +494,14 @@ function sortByColumn(taulukko, first, firstAsc, second, secondAsc, third, third
     });
 }
 
+
 function lisaaKaikkiJoukkueet(taulukko, joukkueet) {
-    // let uusiTaulukko = document.createElement('table');
 
     // tyhjataan mahd aiemmat lukuunottamatta captionia ja ekaa tr:aa
     for (let i = 2; i < taulukko.children.length; i++) {
         const element = taulukko.children[i];
         taulukko.removeChild(element);
     }
-
 
     // uusiTaulukko = taulukko.children.splice(1);
     for (const joukkue of joukkueet) {
@@ -530,12 +517,9 @@ function lisaaRiviTaulukkoon(taulukko, joukkue) {
     let nimi = document.createTextNode(joukkue["nimi"]);
     let joukSarja = document.createTextNode(getSarjanNimi(joukkue.sarja));
     let joukPisteet = laskePisteet(joukkue) + ' p';
-
     let tr = document.createElement('tr');
-
     let sarja1 = document.createElement('td');
     sarja1.appendChild(joukSarja);
-
     let td = document.createElement('td');
     let a = document.createElement('a');
     a.appendChild(nimi);
@@ -544,7 +528,6 @@ function lisaaRiviTaulukkoon(taulukko, joukkue) {
     td.appendChild(a);
     let br = document.createElement('br');
     td.appendChild(br);
-
 
     let joukJasenet = document.createElement('span');
 
@@ -556,7 +539,6 @@ function lisaaRiviTaulukkoon(taulukko, joukkue) {
         }
     }
     td.appendChild(joukJasenet);
-
 
     let pisteet1 = document.createElement('td');
     pisteet1.textContent = joukPisteet;
@@ -572,18 +554,13 @@ function lisaaRiviTaulukkoon(taulukko, joukkue) {
     tr.appendChild(td);
     tr.appendChild(pisteet1);
 
-
     taulukko.append(tr);
 }
 
 
-
 //https://domtool.yakshavings.co.uk/
-function lisaaRastiLomake(parent) {
-    //let form = document.createElement('form');
+function lisaaRastiFieldset(parent) {
 
-    //form.setAttribute('action','foobar.ei.toimi.example');
-    //form.setAttribute('method','post');
     var fieldset1 = document.createElement('fieldset');
     var legend1 = document.createElement('legend');
     fieldset1.appendChild(legend1);
@@ -629,14 +606,12 @@ function lisaaRastiLomake(parent) {
     label3.appendChild(input3);
     fieldset1.appendChild(label3);
 
-    //form.appendChild(fieldset1);
     var button1 = document.createElement('button', 'lisaarasti');
     button1.setAttribute('id', 'rasti');
     var txt7 = document.createTextNode('Lisää rasti');
     button1.appendChild(txt7);
     fieldset1.appendChild(button1);
 
-    //parent.after(form);
     parent.appendChild(fieldset1);
 }
 
