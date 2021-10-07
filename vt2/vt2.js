@@ -9,7 +9,7 @@ let alkuperainen_joukkue = muokattava_joukkue;
 const JOUKKUE_LOMAKE = document.getElementById("joukkuelomake");
 
 // Globaali sort order.
-let sort_order = [0, true, 2, false, 1, false];
+let sort_order = [0, true, 2, false, 1, true];
 
 
 window.addEventListener("load", function () {
@@ -350,6 +350,7 @@ function addJasenInput(e) {
     }
 
 
+
     // Jos ei ollut tyhjia kenttia, lisataan yksi
     if (viimeinen_tyhja == -1) {
         let newInput = createJasenInput();
@@ -386,104 +387,6 @@ function addJasenInput(e) {
     }
 }
 
-
-
-/**
- * OBSOLETE
- * Lisaa inputteja valitun joukkueen jasenien mukaan.
- * @param {*} parent 
- * @param {*} jasenet 
- */
-function addJasenInputWithExisting(parent, jasenet) {
-    while (parent.hasChildNodes()) {
-        parent.removeChild(parent.lastChild);
-    }
-
-    let lomake = JOUKKUE_LOMAKE;
-    let fieldset = lomake.jasenet;
-    let inputit = fieldset.getElementsByTagName('input');
-    let viimeinen_tyhja = -1;
-    let sisaltoa = 0;
-
-    let i;
-    for (let index = 0; index < jasenet.length; index++) {
-
-        let input = createJasenInput();
-        if (jasenet !== null) {
-            input.firstElementChild.value = jasenet[index];
-        }
-
-        //fieldset.appendChild(input);
-
-        parent.appendChild(input);
-    }
-
-
-
-    for (i = inputit.length - 1; i > -1; i--) {
-        let input = inputit[i];
-
-        if (viimeinen_tyhja > -1 && input.value.trim() == "" && inputit.length > 2) {
-            let poistettava = inputit[viimeinen_tyhja].parentNode;
-            fieldset.removeChild(poistettava);
-            viimeinen_tyhja = i;
-        }
-
-        if (viimeinen_tyhja == -1 && input.value.trim() == "" && inputit.length > 1) {
-            viimeinen_tyhja = i;
-        }
-
-        if (input.value !== "") {
-            sisaltoa++;
-        }
-    }
-
-
-    // //Tama estaisi muokkaamasta yhden jasenen joukkuetta lisaamatta toista jasenta.
-    // let button = lomake.muokkaa;
-    // if (joukkueNimiInput.value != "" && sisaltoa >= 2) {
-    //     button.disabled = false;
-    // } else {
-    //     button.disabled = true;
-    // }
-
-
-    if (viimeinen_tyhja == -1) {
-        let newInput = createJasenInput();
-        fieldset.appendChild(newInput);
-
-
-        let y;
-        // jos halutaan kenttiin numerointi
-        for (y = 0; y < inputit.length; y++) {
-            let input = inputit[y];
-            let label = inputit[y].parentNode;
-            label.firstChild.nodeValue = "Jäsen " + (y + 1);
-            inputit[y].setAttribute('name', `jasen${y + 1}`);
-            inputit[y].indeksi = y;
-        
-
-        {
-            let p = y;
-            let paivita_luku = function (e) {
-                if(muokattava_joukkue) {
-                    // kaksi ekaa inputtia kusee
-                    if(muokattava_joukkue["jasenet"] && e.target.value === "") {
-                        muokattava_joukkue["jasenet"].splice(p, 1);
-                    } else if (muokattava_joukkue["jasenet"]) {
-                        muokattava_joukkue["jasenet"][p] = e.target.value;
-                    }
-                }
-
-            };
-            input.removeEventListener('input', paivita_luku);
-            input.addEventListener('input', paivita_luku);
-        }
-
-        }
-    }
-
-}
 
 
 /**
