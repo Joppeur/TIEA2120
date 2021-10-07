@@ -8,23 +8,29 @@ let muokattava_joukkue = {};
 let alkuperainen_joukkue = muokattava_joukkue;
 const JOUKKUE_LOMAKE = document.getElementById("joukkuelomake");
 
+// Globaali sort order.
+let sort_order = [0, true, 2, false, 1, false];
+
 
 window.addEventListener("load", function () {
-    let tulokset = document.querySelector("#tupa > table");
-    tulokset.id = 'tulokset';
+    // Lisataan tulokset tableen kohta pisteille.
+    lisaaPisteEl(); 
 
-    lisaaKaikkiJoukkueet(tulokset, data.joukkueet);
+    // Tehdaan tuloksien legendoista (sarja, nimi, pisteet) klikattavia
+    // TODO: hieno nappi?
+    korjaaTuloksetLegenda();
 
+    // Lisataan datasta joukkueiden tiedot taulukkoon
+    lisaaKaikkiJoukkueet(data.joukkueet);
+
+    // Tehdaan rastilomakkeelle tarvittavat DOM muutokset
     let rastiLomake = document.forms[0];
     lisaaRastiFieldset(rastiLomake);
 
-    lisaaPisteEl(); // Lisaa tulokset tableen kohdan pisteille.
-
-    // sorttaa ensisijaisesti sarjan kanssa (cell[0]) 
-    // ja toissijaisesti pisteiden kanssa (cell[2])
-    // kolmanneksi joukkueen nimen kanssa. (cell[1])
-    sortByColumn(tulokset, 0, true, 2, false, 1, true);
+    // Sortataan tulostaulukko (jarjestys maaritetaan globaalilla muuttujalla)
+    sortTaulukko();
     
+    // Tehdaan muokkauksia joukkueformiin
     korjaaJoukkueForm();
     
     // Rastin lisays
@@ -35,6 +41,44 @@ window.addEventListener("load", function () {
 
 });
 
+
+function korjaaTuloksetLegenda() {
+    let legendat = document.querySelectorAll("#tupa > table > tr > th");
+
+    legendat[0].ascending = sort_order[1];
+    legendat[1].ascending = sort_order[3];
+    legendat[2].ascending = sort_order[5];
+
+    legendat.forEach(function(th) {
+        th.addEventListener('click', changeSortOrder);
+    } );
+}
+
+
+function changeSortOrder(e) {
+    console.log(e.target);
+    e.target.ascending = !e.target.ascending;
+    console.log("ascending: " + e.target.ascending);
+
+    switch (e.target.textContent) {
+        case 'Sarja':
+            sort_order = [0, e.target.ascending, 2, false, 1, true];
+            break;
+
+        case 'Joukkue':
+            sort_order = [1, e.target.ascending, 2, false, 0, true];
+            break;
+
+        case 'Pisteet':
+            sort_order = [2, e.target.ascending, 0, false, 1, true];
+            break;
+    
+        default:
+            sort_order = [0, true, 2, false, 1, true];
+            break;
+    }
+    sortTaulukko();
+}
 
 
 /**
@@ -50,15 +94,16 @@ function muokkaa(e) {
     alkuperainen_joukkue["listaus"]["nimi"].textContent = muokattava_joukkue["nimi"];
 
 
+    // Luodaan uusi listaus joukkueen jasenille
     for (let index = 0; index < muokattava_joukkue["jasenet"].length; index++) {
         let joukJasenet = document.createElement('span');
 
-
+        // Poistetaan aiemmat
         while (alkuperainen_joukkue["listaus"].jasenet.hasChildNodes()) {
             alkuperainen_joukkue["listaus"].jasenet.lastChild.remove();
         }
 
-
+        // Tilalle muokatut
         for (let i = 0; i < muokattava_joukkue["jasenet"].length; i++) {
             let nimi = muokattava_joukkue["jasenet"][i];
             if(nimi !== "") {
@@ -73,28 +118,59 @@ function muokkaa(e) {
         
         
     }
+
+    // lisaa-nappula esille ja muokkaa-nappula piiloon
     lomake.joukkue.hidden = false;
     lomake.muokkaa.hidden = true;
+
+    // Tyhjennetaan muokattava joukkue varmuuden vuoksi.
     muokattava_joukkue = {};
 
-    // Tyhjennetaan form ja disable lisaa joukkue-nappi
+    // Tyhjennetaan form
     lomake.reset();
+
+    // Varmaankin turha, mutta disabloidaan lisaa joukkue nappula, jos ei jo ollut.
     lomake.joukkue.disabled = true;
 
-    // Poistetaan ylimaaraiset inputit
+    // Korjataan inputtien maara.
     addJasenInput();
 
-    let tulokset = document.querySelector("#tupa > table");
-    sortByColumn(tulokset, 0, true, 2, false, 1, true);
+    sortTaulukko();
 }
 
+
+function getLeimaustapaByName(nimi) {
+    // jos ei anneta nimea, palautetaan vakiona GPS
+    if(!nimi) {
+        return getLeimaustapaByName('GPS');
+    }
+
+    for (let i = 0; i < data.leimaustavat.length; i++) {
+        const tapa = data.leimaustavat[i];
+        if(tapa === nimi) {
+            return i;
+        }
+    }
+    return 'xx';
+}
+
+
+function uusiJoukkueId() {
+    let max = 0;
+    for (const el of data.joukkueet) {
+        if (el.id > max) {
+            max = el.id;
+        }
+    }
+    return max + 1;
+}
 
 /**
  * Lisaa joukkueen tietokantaan.
  * @param {*} data
  * @param {*} sarja Sarjan nimi. Jos tyhja, niin vakio on 8h. 
  */
-function lisaaJoukkue(data, sarja) {
+function lisaaJoukkue(data, sarja, id, leimaustapa, rastit) {
 
     //muokattava_joukkue = {};
     //let lomake = document.getElementById('joukkuelomake');
@@ -109,15 +185,25 @@ function lisaaJoukkue(data, sarja) {
         jasenet.push(input.value);
     }
 
-    if (!sarja) {
-        sarja = getSarjanId('8h');
-    }
+ 
+    sarja = getSarjanId(sarja);
+    
+    //TODO
+    leimaustapa = [getLeimaustapaByName(leimaustapa)];
+
+    // TODO
+    rastit = [];
+
+    id = uusiJoukkueId();
+
 
     let joukkue = {
         nimi: nimi,
-        sarja: sarja,
-        jasenet: jasenet
-
+        jasenet: jasenet,
+        id: id,
+        rastit: rastit,
+        leimaustapa: leimaustapa,
+        sarja: sarja
     };
 
     data.joukkueet.push(joukkue);
@@ -125,9 +211,9 @@ function lisaaJoukkue(data, sarja) {
     addJasenInput();
 
 
-    let tulokset = document.querySelector("#tupa > table");
-    lisaaKaikkiJoukkueet(tulokset, data.joukkueet);
-    sortByColumn(tulokset, 0, true, 2, false, 1, true);
+    
+    lisaaKaikkiJoukkueet(data.joukkueet);
+    sortTaulukko(0, true, 2, false, 1, true);
 }
 
 
@@ -163,13 +249,14 @@ function korjaaJoukkueForm() {
     addJasenInput();
     addJasenInput();
 
-    let joukkueNimiInput = JOUKKUE_LOMAKE.nimi1;
-    joukkueNimiInput.addEventListener('input', addJasenInput);
+    
+    //Ei tarvii?
+    // let joukkueNimiInput = JOUKKUE_LOMAKE.nimi1;
+    //joukkueNimiInput.addEventListener('input', addJasenInput);
+
 
 
     label.firstElementChild.addEventListener('input', paivita_nimi);
-
-
     function paivita_nimi(e) {
         muokattava_joukkue["nimi"] = e.target.value;
     }
@@ -183,7 +270,6 @@ function korjaaJoukkueForm() {
     lomake.joukkue.disabled = true;
 
     lomake.muokkaa.addEventListener("click", muokkaa); 
-
     lomake.addEventListener("submit", function (e) {
         e.preventDefault();
         lisaaJoukkue(data);
@@ -206,6 +292,7 @@ function korjaaJoukkueForm() {
 //     }
 // }
 
+
 function createJasenInput() {
     let label = document.createElement("label");
     label.textContent = "Kenttä";
@@ -214,9 +301,6 @@ function createJasenInput() {
     input.addEventListener("input", addJasenInput);
     label.appendChild(input);
     return label;
-
-
-    
 }
 
 
@@ -226,22 +310,16 @@ function createJasenInput() {
  */
 function addJasenInput(e) {
 
-    
     let lomake = JOUKKUE_LOMAKE;
     let fieldset = lomake.jasenet;
-    
     let viimeinen_tyhja = -1;
     let sisaltoa = 0;
     let joukkueNimiInput = lomake.nimi;
     let button = lomake.joukkue;
-
-
-
     let inputit = fieldset.getElementsByTagName('input');
 
-    // Kaydaan inputit viimeisesta alkaen
+    // Kaydaan inputit viimeisesta alkaen. Open koodia vahan muokattuna.
     let i;
-
 
     for (i = inputit.length - 1; i > -1; i--) {
         let input = inputit[i];
@@ -262,8 +340,9 @@ function addJasenInput(e) {
     }
 
 
-    // Karvalakki validointi, jossa jasenen lisays estetaan disabloimalla nappula.
-    // Kunnon hackerman voisi tämän kiertää inspectorilla. Hänet estäisin tsekkaamalla napin painalluksen event listenerissa viela syotetyt tiedot.
+    // Karvalakki validointi, jossa vajaajasenisen joukkueen lisays estetaan disabloimalla nappula.
+    // Kunnon hackerman voisi tämän kiertää inspectorilla. Hänet estäisin tsekkaamalla "lisaa joukkue"-napin event listenerissa syotetyt tiedot.
+    // Also muokatessa joukkuetta hyvaksytaan alle kahden jasenen joukkueet, joten ei valia.
     if (joukkueNimiInput.value != "" && sisaltoa >= 2) {
         button.disabled = false;
     } else {
@@ -271,14 +350,14 @@ function addJasenInput(e) {
     }
 
 
-    // Jos ei ollut tyhjia kenttia, tai ei lainkaan kenttia, tai vain yksi kentta, lisataan yksi.
+    // Jos ei ollut tyhjia kenttia, lisataan yksi
     if (viimeinen_tyhja == -1) {
         let newInput = createJasenInput();
         fieldset.appendChild(newInput);
 
 
         let y;
-        // jos halutaan kenttiin numerointi
+        // lisataan kenttiin numerointi ja indeksit
         for (y = 0; y < inputit.length; y++) {
             let label = inputit[y].parentNode;
             label.firstChild.nodeValue = "Jäsen " + (y + 1);
@@ -310,6 +389,7 @@ function addJasenInput(e) {
 
 
 /**
+ * OBSOLETE
  * Lisaa inputteja valitun joukkueen jasenien mukaan.
  * @param {*} parent 
  * @param {*} jasenet 
@@ -406,6 +486,11 @@ function addJasenInputWithExisting(parent, jasenet) {
 }
 
 
+/**
+ * Event listener, kun painetaan tulokset tablesta joukkueen nimea.
+ * Poistaa aiemmat joukkue lomakkeen inputit, ja asettaa muokattavan joukkueen.
+ * @param {*} e 
+ */
 function muokkaaJoukkue(e) {
     let joukkue = e.currentTarget.joukkueObj;
 
@@ -434,8 +519,6 @@ function muokkaaJoukkue(e) {
         }
     }
 
-
-    //addJasenInputWithExisting(fieldset, joukkue.jasenet);
     addJasenInput();
 
     // Piilotetaan "Lisaa joukkue"-nappi, ja naytetaan muokkaa
@@ -449,8 +532,8 @@ function muokkaaJoukkue(e) {
  * Lisaa tulokset tableen kohdan pisteille.
  */
 function lisaaPisteEl() {
-    // Pisteet
-    let eka = document.querySelector("#tulokset > tr:nth-child(2)");
+    let eka = document.querySelector("#tupa > table > tr:nth-child(2)");
+    //let eka = document.querySelector("#tulokset > tr:nth-child(2)");
     let th1 = (document.createElement('th'));
     th1.textContent = 'Pisteet';
     eka.appendChild(th1);
@@ -483,27 +566,21 @@ function getSarjanNimi(sarjaid) {
 }
 
 
-/**
- * Hakee sarjan nimella sarjan id:m.
- * @param {*} sarjaid 
- */
-function getSarjanId(nimi) {
-    for (const sarja of data.sarjat) {
-        if (sarja.nimi === nimi) {
-            return sarja.id;
-        }
-    }
-    return 'xx';
-}
 
-
-// todo(?) n argumentin maarittaman cellin mukaan sorttaus
-// mahd riski kun sortataan pisteilla: verrataan tekstia eika numeroita,
 // mutta koska toimii niin olkoot for now
-function sortByColumn(taulukko, first, firstAsc, second, secondAsc, third, thirdAsc) {
+function sortTaulukko() {
+    let first = sort_order[0];
+    let firstAsc = sort_order[1];
+    let second = sort_order[2];
+    let secondAsc = sort_order[3];
+    let third = sort_order[4];
+    let thirdAsc = sort_order[5];
+    
+    
+    let taulukko = document.querySelector("#tupa > table");
     let rivit = [...taulukko.rows];
 
-    //Otetaan eka <td> elementti pois joka on Sarja Joukkue Pisteet
+    //Otetaan eka <td> elementti pois joka on "Sarja Joukkue Pisteet"-legenda
     rivit.shift();
 
     let sorted = rivit.sort(function (a, b) {
@@ -582,15 +659,14 @@ function sortByColumn(taulukko, first, firstAsc, second, secondAsc, third, third
 }
 
 
-function lisaaKaikkiJoukkueet(taulukko, joukkueet) {
+function lisaaKaikkiJoukkueet(joukkueet) {
+    let taulukko = document.querySelector("#tupa > table");
 
     for (let i = taulukko.children.length; i > 2; i--) {
         const element = taulukko.children[i-1];
         taulukko.removeChild(element);
     }
 
-
-    // uusiTaulukko = taulukko.children.splice(1);
     for (const joukkue of joukkueet) {
         lisaaRiviTaulukkoon(taulukko, joukkue);
     }
@@ -610,6 +686,7 @@ function lisaaRiviTaulukkoon(taulukko, joukkue) {
     let td = document.createElement('td');
     let a = document.createElement('a');
     a.appendChild(nimi);
+
     a.setAttribute('href', '#joukkuelomake');
     a.addEventListener("click", muokkaaJoukkue);
     td.appendChild(a);
@@ -703,7 +780,13 @@ function lisaaRastiFieldset(parent) {
 }
 
 
-
+/**
+ * Lisaa rastin tietokantaan
+ * @param {*} lat 
+ * @param {*} lon 
+ * @param {*} koodi 
+ * @returns 
+ */
 function lisaaRasti(lat, lon, koodi) {
     if (!lat || !lon || !koodi) {
         return;
@@ -733,6 +816,8 @@ function uusiRastiKoodi() {
     return max + 1;
 }
 
+
+
 function muutaSarjanNimi(data, vanhanimi, uusinimi) {
     for (let i in data.sarjat) {
         if (data.sarjat[i].nimi == vanhanimi) {
@@ -742,6 +827,26 @@ function muutaSarjanNimi(data, vanhanimi, uusinimi) {
     }
 }
 
+
+/**
+ * Hakee sarjan nimella sarjan id:m.
+ * @param {*} sarjaid 
+ */
+ function getSarjanId(nimi) {
+    // jos ei anneta nimea, palautetaan vakiona 8h
+    if(!nimi) {
+        return getSarjanId('8h');
+    }
+
+
+    for (const sarja of data.sarjat) {
+        if (sarja.nimi === nimi) {
+            return sarja.id;
+        }
+    }
+
+    return 'xx';
+}
 
 
 // ====================================================================

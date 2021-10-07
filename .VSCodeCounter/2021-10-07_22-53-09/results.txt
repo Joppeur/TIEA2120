@@ -1,0 +1,52 @@
+Date : 2021-10-07 22:53:09
+Directory : c:\Users\jouko\Documents\Opiskelut\Web-kayttoliittymat
+Total : 17 files,  2782 codes, 716 comments, 893 blanks, all 4391 lines
+
+Languages
++------------+------------+------------+------------+------------+------------+
+| language   | files      | code       | comment    | blank      | total      |
++------------+------------+------------+------------+------------+------------+
+| JavaScript |          8 |      2,389 |        613 |        790 |      3,792 |
+| HTML       |          5 |        268 |         82 |         56 |        406 |
+| CSS        |          2 |        113 |          6 |         36 |        155 |
+| JSON       |          1 |         10 |         10 |          6 |         26 |
+| Docker     |          1 |          2 |          5 |          5 |         12 |
++------------+------------+------------+------------+------------+------------+
+
+Directories
++------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                     | files      | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                        |         17 |      2,782 |        716 |        893 |      4,391 |
+| .devcontainer                                                                            |          2 |         12 |         15 |         11 |         38 |
+| ohjaus1                                                                                  |          2 |        191 |        153 |         67 |        411 |
+| ohjaus2                                                                                  |          3 |        312 |         17 |        103 |        432 |
+| vertaisarviointi                                                                         |          3 |        657 |         57 |        116 |        830 |
+| vertaisarviointi\vko1                                                                    |          3 |        657 |         57 |        116 |        830 |
+| vt1                                                                                      |          2 |        290 |        110 |         82 |        482 |
+| vt2                                                                                      |          5 |      1,320 |        364 |        514 |      2,198 |
++------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| filename                                                                                 | language   | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| c:\Users\jouko\Documents\Opiskelut\Web-kayttoliittymat\.devcontainer\Dockerfile          | Docker     |          2 |          5 |          5 |         12 |
+| c:\Users\jouko\Documents\Opiskelut\Web-kayttoliittymat\.devcontainer\devcontainer.json   | JSON       |         10 |         10 |          6 |         26 |
+| c:\Users\jouko\Documents\Opiskelut\Web-kayttoliittymat\ohjaus1\ohjaus1.js                | JavaScript |        178 |        153 |         67 |        398 |
+| c:\Users\jouko\Documents\Opiskelut\Web-kayttoliittymat\ohjaus1\pohja.html                | HTML       |         13 |          0 |          0 |         13 |
+| c:\Users\jouko\Documents\Opiskelut\Web-kayttoliittymat\ohjaus2\index.html                | HTML       |        116 |          0 |         33 |        149 |
+| c:\Users\jouko\Documents\Opiskelut\Web-kayttoliittymat\ohjaus2\nanonano.js               | JavaScript |        101 |         11 |         42 |        154 |
+| c:\Users\jouko\Documents\Opiskelut\Web-kayttoliittymat\ohjaus2\oma.css                   | CSS        |         95 |          6 |         28 |        129 |
+| c:\Users\jouko\Documents\Opiskelut\Web-kayttoliittymat\vertaisarviointi\vko1\pohja.xhtml | HTML       |         28 |          2 |          2 |         32 |
+| c:\Users\jouko\Documents\Opiskelut\Web-kayttoliittymat\vertaisarviointi\vko1\vt1.js      | JavaScript |        317 |         28 |         59 |        404 |
+| c:\Users\jouko\Documents\Opiskelut\Web-kayttoliittymat\vertaisarviointi\vko1\vt1_alk.js  | JavaScript |        312 |         27 |         55 |        394 |
+| c:\Users\jouko\Documents\Opiskelut\Web-kayttoliittymat\vt1\pohja.xhtml                   | HTML       |         28 |          2 |          2 |         32 |
+| c:\Users\jouko\Documents\Opiskelut\Web-kayttoliittymat\vt1\vt1.js                        | JavaScript |        262 |        108 |         80 |        450 |
+| c:\Users\jouko\Documents\Opiskelut\Web-kayttoliittymat\vt2\pohja.xhtml                   | HTML       |         83 |         78 |         19 |        180 |
+| c:\Users\jouko\Documents\Opiskelut\Web-kayttoliittymat\vt2\tyylit.css                    | CSS        |         18 |          0 |          8 |         26 |
+| c:\Users\jouko\Documents\Opiskelut\Web-kayttoliittymat\vt2\vt2 - almosttaso3.js          | JavaScript |        429 |        115 |        188 |        732 |
+| c:\Users\jouko\Documents\Opiskelut\Web-kayttoliittymat\vt2\vt2 taso1.js                  | JavaScript |        161 |         18 |         57 |        236 |
+| c:\Users\jouko\Documents\Opiskelut\Web-kayttoliittymat\vt2\vt2.js                        | JavaScript |        629 |        153 |        242 |      1,024 |
+| Total                                                                                    |            |      2,782 |        716 |        893 |      4,391 |
++------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
