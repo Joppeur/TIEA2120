@@ -37,9 +37,57 @@ window.addEventListener("load", function () {
     rastiLomake.addEventListener("submit", function (e) {
         e.preventDefault();
         lisaaRasti(rastiLomake[1].value, rastiLomake[2].value, rastiLomake[3].value);
+        
     });
+    
+    //luoRastiLeimaus();
 
 });
+
+
+// En teekkään taso 5:sta loppuun. Ignore this.
+function luoRastiLeimaus() {
+    let lomake = JOUKKUE_LOMAKE;
+
+    let fieldset = document.createElement('fieldset');
+    fieldset.setAttribute('id', 'leimausfield');
+
+    let legend = document.createElement('legend');
+    legend.textContent = 'Rastileimaukset';
+    fieldset.appendChild(legend);
+
+    let p1 = document.createElement('p');
+
+    let select = document.createElement('select');
+    p1.appendChild(select);
+
+
+    let option = document.createElement('option');
+    option.textContent = 'Hello herpderp';
+    let option2 = document.createElement('option');
+    option2.textContent = 'Asdasd qwerty';
+
+
+    let p2 = document.createElement('p');
+    let lisaaButton = document.createElement('button');
+    lisaaButton.id = 'lisaaLeimaus';
+    lisaaButton.textContent = 'Lisää leimaus';
+    p2.appendChild(lisaaButton);
+
+    
+    let muokkaaButton = document.createElement('button');
+    muokkaaButton.id = 'muokkaaLeimaus';
+    muokkaaButton.textContent = 'Tallenna muutokset';
+    muokkaaButton.hidden = true;
+    p2.appendChild(muokkaaButton);
+
+    fieldset.appendChild(p1);
+    fieldset.appendChild(option);
+    fieldset.appendChild(option2);
+    fieldset.appendChild(p2);
+    lomake.appendChild(fieldset);
+
+}
 
 
 function korjaaTuloksetLegenda() {
@@ -79,6 +127,10 @@ function changeSortOrder(e) {
     }
     sortTaulukko();
 }
+
+
+
+
 
 
 /**
@@ -140,14 +192,18 @@ function muokkaa(e) {
 
 
 function getLeimaustapaByName(nimi) {
-    // jos ei anneta nimea, palautetaan vakiona GPS
-    if(!nimi) {
+
+    // Olisin halunnut kayttaa tata mutta jshint ei tykkaa :(
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Nullish_coalescing_operator
+    // nimi = nimi ?? getLeimaustapaByName('GPS'); 
+    if (nimi == null || nimi == undefined) {
         return getLeimaustapaByName('GPS');
     }
 
+
     for (let i = 0; i < data.leimaustavat.length; i++) {
         const tapa = data.leimaustavat[i];
-        if(tapa === nimi) {
+        if(tapa.toUpperCase() === nimi.toUpperCase()) {
             return i;
         }
     }
@@ -189,7 +245,8 @@ function lisaaJoukkue(data, sarja, id, leimaustapa, rastit) {
     sarja = getSarjanId(sarja);
     
     //TODO
-    leimaustapa = [getLeimaustapaByName(leimaustapa)];
+    //leimaustapa = [getLeimaustapaByName(leimaustapa)];
+    leimaustapa = [getLeimaustapaByName('gps')];
 
     // TODO
     rastit = [];
@@ -211,9 +268,10 @@ function lisaaJoukkue(data, sarja, id, leimaustapa, rastit) {
     addJasenInput();
 
 
-    
-    lisaaKaikkiJoukkueet(data.joukkueet);
-    sortTaulukko(0, true, 2, false, 1, true);
+    //lisaaKaikkiJoukkueet(data.joukkueet);
+    let taulukko = document.querySelector("#tupa > table");
+    lisaaRiviTaulukkoon(taulukko, joukkue);
+    sortTaulukko();
 }
 
 
@@ -244,17 +302,9 @@ function korjaaJoukkueForm() {
     }
     insert.insertAdjacentElement('afterend', fieldset2);
 
-
     // Lisataan kaksi jasen inputtia
     addJasenInput();
     addJasenInput();
-
-    
-    //Ei tarvii?
-    // let joukkueNimiInput = JOUKKUE_LOMAKE.nimi1;
-    //joukkueNimiInput.addEventListener('input', addJasenInput);
-
-
 
     label.firstElementChild.addEventListener('input', paivita_nimi);
     function paivita_nimi(e) {
@@ -264,7 +314,6 @@ function korjaaJoukkueForm() {
     // Piilotetaan 'Tallenna muutokset'-nappi
     let lomake = fieldset.parentElement;
     lomake.muokkaa.hidden = true;
-
 
     // Disabloidaan lisaa joukkue nappain. (Muutetaan jaseninputtien evenlistenereissa)
     lomake.joukkue.disabled = true;
@@ -276,21 +325,6 @@ function korjaaJoukkueForm() {
     });
 
 }
-
-
-// function checkJasenInputValidity() {
-//     // let lomake = document.getElementById("joukkuelomake");
-//     let lomake = JOUKKUE_LOMAKE;
-//     let fieldset = lomake.jasenet;
-//     let inputit = fieldset.getElementsByTagName('input');
-
-//     if (inputit.length >= 2 && lomake.nimi1.value.trim() != "") {
-//         // Joukkueformin lisaa joukkue nappain -> enabled.
-//         lomake.joukkue.disabled = false;
-//     } else {
-//         lomake.joukkue.disabled = true;
-//     }
-// }
 
 
 function createJasenInput() {
@@ -418,7 +452,6 @@ function muokkaaJoukkue(e) {
             input.firstElementChild.value = joukkue.jasenet[index];
     
             fieldset.appendChild(input);
-
         }
     }
 
@@ -443,18 +476,6 @@ function lisaaPisteEl() {
 }
 
 
-
-function compareNames(cellA, cellB, asc) {
-    if (asc) {
-        if (cellA > cellB) { return 1; }
-        if (cellA < cellB) { return -1; }
-    } else {
-        if (cellA > cellB) { return -1; }
-        if (cellA < cellB) { return 1; }
-    }
-}
-
-
 /**
  * Hakee sarjaid:lla sarjan nimen.
  * @param {*} sarjaid 
@@ -470,15 +491,35 @@ function getSarjanNimi(sarjaid) {
 
 
 
-// mutta koska toimii niin olkoot for now
+function compareNames(a, b, asc) {
+    if (asc) {
+        if (a.toUpperCase() < b.toUpperCase()) { 
+            return -1; 
+        }
+        if (a.toUpperCase() > b.toUpperCase()) { 
+            return 1; 
+        }
+        return 0;
+    } else {
+        if (a.toUpperCase() < b.toUpperCase()) { 
+            return 1; 
+        }
+        if (a.toUpperCase() > b.toUpperCase()) { 
+            return -1; 
+        }
+        return 0;
+    }
+}
+
+
 function sortTaulukko() {
+    // Otetaan järjestysjärjestys globaalista muuttujasta.
     let first = sort_order[0];
     let firstAsc = sort_order[1];
     let second = sort_order[2];
     let secondAsc = sort_order[3];
     let third = sort_order[4];
-    let thirdAsc = sort_order[5];
-    
+    let thirdAsc = sort_order[5];  
     
     let taulukko = document.querySelector("#tupa > table");
     let rivit = [...taulukko.rows];
@@ -502,7 +543,7 @@ function sortTaulukko() {
             cell1B = b.cells[first].textContent.toLowerCase();
         }
 
-        //  compareNames(cell1A, cell1B, firstAsc); // Miksi tama ei toimi?? Tismalleen sama koodi.
+        // taalla olisi voinut kayttaa compareNames-funktiotani mut menee nyt nain kun debuggailin.
         if (firstAsc) {
             if (cell1A > cell1B) { return 1; }
             if (cell1A < cell1B) { return -1; }
@@ -556,6 +597,7 @@ function sortTaulukko() {
         }
     });
 
+    // Tehokkaampia tapoja on.
     sorted.forEach(function (el) {
         taulukko.appendChild(el);
     });
@@ -625,7 +667,7 @@ function lisaaRiviTaulukkoon(taulukko, joukkue) {
 }
 
 
-//https://domtool.yakshavings.co.uk/
+
 function lisaaRastiFieldset(parent) {
 
     let fieldset1 = document.createElement('fieldset');
@@ -695,19 +737,28 @@ function lisaaRasti(lat, lon, koodi) {
         return;
     }
 
-    if (isNaN(parseFloat(lat)) || isNaN(parseFloat(lon))) {
+    if (Number.isNaN(parseFloat(lat)) || Number.isNaN(parseFloat(lon))) {
         return;
     }
 
     let rasti = {
-        lon: lon.toString(),
+        lon: parseFloat(lon),
         koodi: koodi.toString(),
-        lat: lat.toString(),
+        lat: parseFloat(lat),
         id: uusiRastiKoodi(),
     };
     data.rastit.push(rasti);
+    tulostaRastit();
 }
 
+
+function tulostaRastit() {
+    let rastit = [...data.rastit];
+
+    rastit.sort((a, b) => compareNames(a.koodi, b.koodi, true));
+    console.log('Rasti          Lat          Lon');
+    rastit.forEach(rasti => console.log(rasti.koodi.toString().padEnd(15,' ') + rasti.lat.toString().padEnd(13, ' ') + rasti.lon));
+}
 
 function uusiRastiKoodi() {
     let max = 0;
