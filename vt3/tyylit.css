@@ -1,0 +1,30 @@
+fieldset {
+    display: flex;
+    flex-direction: column;
+    width: 20em;
+
+}
+
+.joukkuenimi {
+    display:flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+#sarja {
+    display: flex;
+    margin-right: auto;
+}
+
+.radio {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+
+.jasen {
+    display:flex;
+    flex-direction: row;
+    margin: 0.5em;
+    justify-content: space-between;
+}

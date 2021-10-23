@@ -12,7 +12,55 @@
  Kirjoita mahdollisimman paljon valmista HTML-koodia ja luo javascriptilla dynaamisesti
  vain tarpeelliset kuten leimaustapojen ja sarjojen valinta sekä joukkuelistaus
   -->
-       <h1>Tulospalvelu</h1>
+	<h1>Tulospalvelu</h1>
+  <form action="no.workerino" method="post" id="joukkueform">
+	<fieldset>
+		<legend>Joukkueen tiedot</legend>
+		
+		<div class="joukkuenimi">
+			<label for="nimi">Nimi</label>
+			<input type="text" name="nimi" id="nimi" required='required'></input>
+		</div>
+
+		<p></p>
+
+		<div  id="sarjat">
+			<!-- <div class="radio">
+					<span id="sarja">Sarja</span>
+					<label for="kaksi" class="sarjalabel">Testisarja</label>
+					<input type="radio" name="kaksi" id="kaksi"></input>
+				</div>
+
+				<div class="radio">
+					<label for="kahdeksan" class="sarjalabel">4h</label>
+					<input type="radio" name="nelja" id="nelja"></input>
+				</div>
+
+				<div class="radio">
+					<label for="kahdeksan" class="sarjalabel">8h</label>
+					<input type="radio" name="kahdeksan" id="kahdeksan"></input> 
+				</div> -->
+
+		</div>
+
+		</fieldset>
+
+		<fieldset id="jasenet">
+			<legend>Jäsenet</legend>
+			<!-- <div class="jasen">
+				<label for="jasen1">Jäsen 1</label>
+				<input type="text" id="jasen1"></input>
+			</div> -->
+			<!-- <div class="jasen">
+				<label for="jasen2">Jäsen 2</label>
+				<input type="text" id="jasen2"></input>
+			</div> -->
+		</fieldset>
+
+		<button type="submit" name="tallenna" id="tallenna">Tallenna</button>
+  </form>
+
+
 
 <!-- Tästä eteenpäin sivun sisältöä ei saa muuttaa -->
 <!-- Sivun validoinnin voit tehdä milloin tahansa näppäinyhdistelmällä CTRL+ALT+V -->
