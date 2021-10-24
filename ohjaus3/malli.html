@@ -1,191 +1,222 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fi" lang="fi">
+
 <head>
-<title>Mallilomake - TIEA2120 Web-käyttöliittymien ohjelmointi</title>
-<style>
-form fieldset > label {
- display: block;
- max-width: 100%;
- width: 30em;
- clear: both;
- position: relative;
- min-height: 2em;
-}
+  <title>Mallilomake - TIEA2120 Web-käyttöliittymien ohjelmointi</title>
+  <style>
+    form fieldset>label {
+      display: block;
+      max-width: 100%;
+      width: 30em;
+      clear: both;
+      position: relative;
+      min-height: 2em;
+    }
 
-label input {
-   float: right;
-}
+    label input {
+      float: right;
+    }
 
-p {
- clear: both;
- width: 30em;
- max-width: 100%;
- position: relative;
-}
-p span {
-  float: right;
-}
-p label > input, fieldset.short label input {
- float: none;
-}
+    p {
+      clear: both;
+      width: 30em;
+      max-width: 100%;
+      position: relative;
+    }
 
-:required {
-    border: 1px solid blue;
-}
-:invalid {
-   border: 1px solid red;
-}
-:valid {
-   border: 1px solid black;
-}
+    p span {
+      float: right;
+    }
 
-</style>
-<script>
-var kurssit = new Set();
+    p label>input,
+    fieldset.short label input {
+      float: none;
+    }
 
-function tarkista(kentta, virhe) {
+    :required {
+      border: 1px solid blue;
+    }
+
+    :invalid {
+      border: 1px solid red;
+    }
+
+    :valid {
+      border: 1px solid black;
+    }
+  </style>
+  <script>
+    var kurssit = new Set();
+
+    function tarkista(kentta, virhe) {
       // jos rikotaan rajoitteita niin asetetaan virheilmoitus. 
       // Rajoitteet on määrätty suoraan html-tasolla
       if (!kentta.valid) {
-            kentta.setCustomValidity(virhe);
-         // kutsu reportValidity() jos haluat heti virheilmoituksen näkyville
-         //   kentta.reportValidity()
+        kentta.setCustomValidity(virhe);
+        // kutsu reportValidity() jos haluat heti virheilmoituksen näkyville
+        //   kentta.reportValidity()
       } else {
-            // jos kaikki ok niin virheilmoitus pitää asettaa tyhjäksi merkkijonoksi
-            kentta.setCustomValidity("");
-            kentta.reportValidity()
+        // jos kaikki ok niin virheilmoitus pitää asettaa tyhjäksi merkkijonoksi
+        kentta.setCustomValidity("");
+        kentta.reportValidity()
       }
 
-}
+    }
 
-function tarkista_kurssit() {
-          // haetaan kaikki kursseihin liittyvät checkboxit
-          let checkboxit = document.querySelectorAll('input[type="checkbox"]')
-          // jos kurssit-taulukossa on valintoja niin poistetaan virheilmoitukset
-          // jos ei ole valintoja niin asetetaan jokaiseen kenttään virheilmoitus
-          for (c of checkboxit) {
-              if ( kurssit.size ) {
-                c.setCustomValidity("");
-              } else {
-                c.setCustomValidity("Valitse vähintään yksi kurssi");
-              }
-          
-          }
+    function tarkista_kurssit() {
+      // haetaan kaikki kursseihin liittyvät checkboxit
+      let checkboxit = document.querySelectorAll('input[type="checkbox"]')
+      // jos kurssit-taulukossa on valintoja niin poistetaan virheilmoitukset
+      // jos ei ole valintoja niin asetetaan jokaiseen kenttään virheilmoitus
+      for (c of checkboxit) {
+        if (kurssit.size) {
+          c.setCustomValidity("");
+        } else {
+          c.setCustomValidity("Valitse vähintään yksi kurssi");
+        }
 
-}
+      }
 
-window.onload = function() {
+    }
 
-    let email = document.querySelector('input[type="email"]');
+    window.onload = function () {
 
-    email.addEventListener("input", function (e) {
-      tarkista(e.target, "Syötä @student.jyu.fi-päätteinen sähköpostiosoite");
-    });
-   // tämä tapahtuu lomaketta lähetettäessä, jos kentän syöte on virheellinen
-    email.addEventListener("invalid", function (e) {
-         console.log("virheellinen syöte kentässä :", e.target);
-    });
+      let pituus = document.querySelector('input[name="pituus"]');
+      let meter = document.querySelector('meter');
+      // alustetaan meterin oletusarvoksi sama mitä pituudessa
+      meter.value = pituus.value;
+
+      // seurataan pituuden muutoksia ja päivitetään ne meteriin
+      pituus.addEventListener("input", function (e) {
+        let pituus = e.target;
+        meter.value = pituus.value;
+      });
+
+
+
+      let email = document.querySelector('input[type="email"]');
+
+      email.addEventListener("input", function (e) {
+        tarkista(e.target, "Syötä @student.jyu.fi-päätteinen sähköpostiosoite");
+      });
+      // tämä tapahtuu lomaketta lähetettäessä, jos kentän syöte on virheellinen
+      email.addEventListener("invalid", function (e) {
+        console.log("virheellinen syöte kentässä :", e.target);
+      });
 
       // asetetaan virhetarkistukset jokaiseen checkboxiin
       let checkboxit = document.querySelectorAll('input[type="checkbox"]')
 
       for (c of checkboxit) {
         c.addEventListener("change", function (e) {
-            if (e.target.checked ) {
-                kurssit.add (e.target.value );
-            }
-            else {
-                kurssit.delete(e.target.value);
-            }
-            tarkista_kurssit();
+          if (e.target.checked) {
+            kurssit.add(e.target.value);
+          }
+          else {
+            kurssit.delete(e.target.value);
+          }
+          tarkista_kurssit();
         });
-    }
-    // suoritetaan kurssien tarkistus heti. Voitaisiin ajaa myös submitin yhteydessä
-    
-    document.querySelector('form').addEventListener("submit", function (e) {
-        tarkista_kurssit();
-         console.log("Onko lomake validi:" +  e.target.checkValidity() );
-        // ilmoitetaan mahdollisista virheistä
-         e.target.reportValidity();
-         e.preventDefault(); // estetään lomakkeen lähettäminen palvelimelle
-         // tulostetaan kunkin kentän nimi, arvo ja validius
-         for ( o of document.forms[0] ) {
-           if (o.type != "fieldset")
-                console.log (o.name + " " + o.value + " " + o.checkValidity() );
-         }
-    });
+      }
+      // suoritetaan kurssien tarkistus heti. Voitaisiin ajaa myös submitin yhteydessä
 
-}
-</script>
+      document.querySelector('form').addEventListener("submit", function (e) {
+        tarkista_kurssit();
+        console.log("Onko lomake validi:" + e.target.checkValidity());
+        // ilmoitetaan mahdollisista virheistä
+        e.target.reportValidity();
+        e.preventDefault(); // estetään lomakkeen lähettäminen palvelimelle
+        // tulostetaan kunkin kentän nimi, arvo ja validius
+        for (o of document.forms[0]) {
+          if (o.type != "fieldset")
+            console.log(o.name + " " + o.value + " " + o.checkValidity());
+        }
+      });
+
+    }
+  </script>
 </head>
+
 <body>
-<form>
-<fieldset>
-<legend>Henkilötiedot</legend>
-<label> Etunimi <input type="text" name="etunimi"  required="required" /></label>
-<label> Sukunimi <input type="text" name="sukunimi"  required="required" /></label>
-<label> Puhelinnumero <input type="tel" pattern="\+[0-9]{3} [0-9]{2} [0-9]*" name="puh"  required="required" /></label>
-<!-- Validaattori ei tykkää pattern-attribuutista, mutta se voi hyvä olla siltä varalta,
+  <form>
+    <fieldset>
+      <legend>Henkilötiedot</legend>
+      <label> Etunimi <input type="text" name="etunimi" required="required" /></label>
+      <label> Sukunimi <input type="text" name="sukunimi" required="required" /></label>
+      <label> Puhelinnumero <input type="tel" pattern="\+[0-9]{3} [0-9]{2} [0-9]*" name="puh"
+          required="required" /></label>
+      <!-- Validaattori ei tykkää pattern-attribuutista, mutta se voi hyvä olla siltä varalta,
 että käytössä on selain, joka ei osaa date-tyyppiä
 <label> Syntymäaika <input type="date" min="1917-01-01" max="2000-01-01" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" name="syntymaika"  required="required" /></label>-->
-<label> Syntymäaika <input type="date" min="1917-01-01" max="2000-01-01" name="syntymaika"  required="required" /></label>
-<label> Sähköpostiosoite <input size="40" type="email" name="email"  required="required" pattern=".*@student.jyu.fi" /></label>
-<p>Sukupuoli <span><label>Mies <input checked="checked" type="radio" value="mies" name="sukupuoli"  required="required"/></label> <label>Nainen <input type="radio" name="sukupuoli" value="nainen" required="required" /></label></span></p>
-<label> Kotisivun osoite <input size="40" pattern="http://users.jyu.fi/.*" required="required" type="url" name="url" /></label>
-<label> Salasana <input type="password" minlength="8" name="salasana"  required="required"/></label>
-<label> Lempiväri <input type="color" name="color" /></label>
-<label> Lempiruoka <input type="text" list="ruuat" name="ruoka"  required="required" pattern="Makaronilaatikko|Hernekeitto|Maksalaatikko|Lihapullat" />
-<datalist id="ruuat">
-<option>Makaronilaatikko</option>
-<option>Hernekeitto</option>
-<option>Maksalaatikko</option>
-<option>Lihapullat</option>
-</datalist>
-</label>
-<label> Pituus (cm) <input type="number" name="pituus" min="120" max="230" value="170" required="required"/></label>
-<label> Paino (40-200 kg) <input type="range" name="color" min="40" max="200" value="50" /></label>
-<!-- Tässä sama vika kuin daten kohdalla 
+      <label> Syntymäaika <input type="date" min="1917-01-01" max="2000-01-01" name="syntymaika"
+          required="required" /></label>
+      <label> Sähköpostiosoite <input size="40" type="email" name="email" required="required"
+          pattern=".*@student.jyu.fi" /></label>
+      <p>Sukupuoli <span><label>Mies <input checked="checked" type="radio" value="mies" name="sukupuoli"
+              required="required" /></label> <label>Nainen <input type="radio" name="sukupuoli" value="nainen"
+              required="required" /></label></span></p>
+      <label> Kotisivun osoite <input size="40" pattern="http://users.jyu.fi/.*" required="required" type="url"
+          name="url" /></label>
+      <label> Salasana <input type="password" minlength="8" name="salasana" required="required" /></label>
+      <label> Lempiväri <input type="color" name="color" /></label>
+      <label> Lempiruoka <input type="text" list="ruuat" name="ruoka" required="required"
+          pattern="Makaronilaatikko|Hernekeitto|Maksalaatikko|Lihapullat" />
+        <datalist id="ruuat">
+          <option>Makaronilaatikko</option>
+          <option>Hernekeitto</option>
+          <option>Maksalaatikko</option>
+          <option>Lihapullat</option>
+        </datalist>
+      </label>
+      <label> Pituus (cm) <input type="input" name="pituus" readonly="true" min="100" max="230" value="170" required="required" /></label>
+      <input type="meter" name >
+        
+      <label> Paino (40-200 kg) <input type="range" name="color" min="40" max="200" value="50" /></label>
+      <!-- Tässä sama vika kuin daten kohdalla 
 <label> Päivämäärä ja kellonaika <input type="datetime-local" name="aika"   required="required" max="2017-09-01T10:30"  pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}" /></label>-->
-<label> Päivämäärä ja kellonaika <input type="datetime-local" name="aika"   required="required" max="2017-09-01T10:30"  /></label>
-</fieldset>
-<fieldset class="short">
-<legend>Kurssit</legend>
-<label><input type="checkbox" value="ITKP101" name="kurssit" /> ITKP101 Tietokone ja tietoverkot työvälineenä </label> 
-<label><input type="checkbox" value="ITKP1011" name="kurssit" /> ITKP1011 Web-julkaiseminen </label> 
-<label><input type="checkbox" value="TIEA2120" name="kurssit"  /> TIEA2120 Web-käyttöliittymien ohjelmointi </label>
-<label><input type="checkbox" value="TIEA2080" name="kurssit"  /> TIEA2080 Web-palvelinohjelmointi </label>
-</fieldset>
-<fieldset>
-<legend>Laitos</legend>
-<label>
-<select name="laitos"  required="required">
-<option value="">-</option>
-<optgroup label="Informaatioteknologin tiedekunta">
-<option value="1">Tietojärjestelmätieteen laitos</option>
-<option value="2">Tietotekniikan laitos</option>
-</optgroup>
-<optgroup label="Matemaattis-luonnontieteellinen tiedekunta">
-<option value="3">Bio- ja ympäristötieteiden laitos</option>
-<option value="4">Fysiikan laitos</option>
-<option value="5">Kemian laitos</option>
-<option value="6">Matematiikan ja tilastotieteen laitos</option>
-</optgroup>
-</select>
-</label>
+      <label> Päivämäärä ja kellonaika <input type="datetime-local" name="aika" required="required"
+          max="2017-09-01T10:30" /></label>
+    </fieldset>
+    <fieldset class="short">
+      <legend>Kurssit</legend>
+      <label><input type="checkbox" value="ITKP101" name="kurssit" /> ITKP101 Tietokone ja tietoverkot työvälineenä
+      </label>
+      <label><input type="checkbox" value="ITKP1011" name="kurssit" /> ITKP1011 Web-julkaiseminen </label>
+      <label><input type="checkbox" value="TIEA2120" name="kurssit" /> TIEA2120 Web-käyttöliittymien ohjelmointi
+      </label>
+      <label><input type="checkbox" value="TIEA2080" name="kurssit" /> TIEA2080 Web-palvelinohjelmointi </label>
+    </fieldset>
+    <fieldset>
+      <legend>Laitos</legend>
+      <label>
+        <select name="laitos" required="required">
+          <option value="">-</option>
+          <optgroup label="Informaatioteknologin tiedekunta">
+            <option value="1">Tietojärjestelmätieteen laitos</option>
+            <option value="2">Tietotekniikan laitos</option>
+          </optgroup>
+          <optgroup label="Matemaattis-luonnontieteellinen tiedekunta">
+            <option value="3">Bio- ja ympäristötieteiden laitos</option>
+            <option value="4">Fysiikan laitos</option>
+            <option value="5">Kemian laitos</option>
+            <option value="6">Matematiikan ja tilastotieteen laitos</option>
+          </optgroup>
+        </select>
+      </label>
 
-</fieldset>
+    </fieldset>
 
 
-<fieldset>
-<legend>Vapaa sana</legend>
-<textarea name="teksti" rows="12" cols="40">
+    <fieldset>
+      <legend>Vapaa sana</legend>
+      <textarea name="teksti" rows="12" cols="40">
 </textarea>
-</fieldset>
-<div><button>Tallenna</button></div>
-</form>
+    </fieldset>
+    <div><button>Tallenna</button></div>
+  </form>
 
-<pre></pre>
+  <pre></pre>
 
 </body>
-</html>
 
+</html>
