@@ -5,6 +5,7 @@
 
 
 lisaaSarjaRadiot();
+lisaaLeimausCheckboxit();
 inputHandler();
 inputHandler();
 luoJoukkueListaus();
@@ -12,14 +13,21 @@ luoJoukkueListaus();
 // Event handlerit
 // ======================================================================================================
 
+// Valittaa mahdollisesta tyhjasta nimesta kun siirrytaan seuraavaan kenttaan.
 let nimi = document.querySelector("#nimi");
-nimi.addEventListener('blur', function (e) { // Valittaa nimesta kun siirrytaan seuraavaan kenttaan.
+nimi.addEventListener('blur', function (e) { 
     nimi.setCustomValidity(nimiCustomValidity(nimi));
     e.target.reportValidity();
 });
 
 
-// Event handler submitille
+// Valittaa mahdollisesta tyhjasta leimauksesta kun yritetaan siirtya seuraavaan kenttaan viimeisesta checkboxista.
+let lastCheckbox = document.querySelector("#leimaukset > div:last-child input");
+lastCheckbox.addEventListener('blur', function(e) {
+    e.target.reportValidity();
+});
+
+
 let form = document.forms[0];
 form.addEventListener('submit', function (e) {
     e.preventDefault();
@@ -27,6 +35,8 @@ form.addEventListener('submit', function (e) {
 
     if (form.checkValidity()) {
         // Jos kaikki ok, lisataan joukkue tietokantaan
+        
+        // Haetaan jasenten nimet inputeista
         let jasenInputs = document.getElementsByClassName('jaseninput');
         let jasenet = [];
         for (const input of jasenInputs) {
@@ -35,21 +45,33 @@ form.addEventListener('submit', function (e) {
             }
         }
 
+        let leimausInputs = document.querySelectorAll('input[name="leimauscheckbox"]:checked');
+        let leimaukset = [];
+        for (const input of leimausInputs) {
+            let leimausNimi = input.labels[0].textContent;
+            leimaukset.push(getLeimausIdx(leimausNimi));
+        }
+
         lisaaJoukkue(
             e.target.nimi.value,
-            e.target.querySelector('input[name="sarjaradio"]:checked').labels[0].textContent,
+            leimaukset,
+            e.target.querySelector('input[name="sarjaradio"]:checked').labels[0].textContent, // Hakee checkatun radionapin contentin
             jasenet
         );
 
         e.target.reset();
         inputHandler();
-    }
+    } 
 
     // Paivitetaan joukkuelistaus
     luoJoukkueListaus();
 });
 
 // ======================================================================================================
+
+
+
+
 
 function luoJoukkueListaus() {
     let list = document.getElementById('joukkuelistaus');
@@ -109,17 +131,17 @@ function sortJoukkueet(joukkueet) {
 }
 
 
-function lisaaJoukkue(nimi, sarja, jasenet) {
+function lisaaJoukkue(nimi, leimaukset, sarja, jasenet) {
     
-    let leimaustapa = [0];  // Hardcoded
-    let rastit = {};        // Hardcoded
+    //let leimaustapa = [0];  // Hardcoded
+    let rastit = {};        // Hardcoded, voisi olla parempi laittaa HTLM formiin hidden inputtina.
 
     let joukkue = {
         nimi: nimi,
         jasenet: jasenet,
         id: uusiJoukkueId(),
         rastit: rastit,
-        leimaustapa: leimaustapa,
+        leimaustapa: leimaukset,
         sarja: getSarjanId(sarja)
     };
 
@@ -206,6 +228,64 @@ function luoJasenInput() {
     return div;
 }
 
+function lisaaLeimausCheckboxit() {
+    let leimauksetDiv = document.querySelector("#leimaukset");
+    let leimaustavat = [...data.leimaustapa];
+
+    for (let i = 0; i < leimaustavat.length; i++) {
+        const tapa = leimaustavat[i];
+        let div = document.createElement('div');
+        div.setAttribute('class', 'checkbox');
+
+        // Lisataan ekaan diviin span teksti 'Leimaustapa'
+        if (i == 0) {
+            let span = document.createElement('span');
+            span.textContent = 'Leimaustapa';
+            span.setAttribute('id', 'checkboxSpan');
+            div.appendChild(span);
+        }
+
+        let label = document.createElement('label');
+        label.setAttribute('class', 'checkboxlabel');
+        label.setAttribute('for', `leimauscheckbox${i}`);
+        label.textContent = tapa;
+        div.appendChild(label);
+
+        let input = document.createElement('input');
+        input.setAttribute('type', 'checkbox');
+        input.setAttribute('name', `leimauscheckbox`);
+        input.setAttribute('id', `leimauscheckbox${i}`);
+        
+
+        // Validity check leimaustavoille
+        input.addEventListener('change', function() {
+            leimausValidity();
+        });
+
+        div.appendChild(input);
+        leimauksetDiv.appendChild(div);
+    }
+
+    // Kutsutaan tata kerran, jotta viimeinen checkbox saa customValidityn.
+    leimausValidity();
+
+}
+
+
+// Tarkastaa, onko leimaustapaa valittu. Jos on, poistetaan validityherjaus joka on asetettu ainoastaan viimeiselle checkboxille.
+// TODO: parempi nimi talle funktiolle.
+function leimausValidity() {
+    let checked = document.querySelectorAll('input[name="leimauscheckbox"]:checked');
+            
+    if (checked.length > 0) {
+        let lastCheckbox = document.querySelector("#leimaukset > div:last-child input"); // Hakee viimeisen leimauscheckboxin
+        lastCheckbox.setCustomValidity('');
+    } else {
+        let lastCheckbox = document.querySelector("#leimaukset > div:last-child input"); // Hakee viimeisen leimauscheckboxin
+        lastCheckbox.setCustomValidity('Valitse vähintään yksi leimaustapa.');
+    }
+}
+
 
 // Lisaa formin fielsettiin radionapit sarjoille aakkosjarjestyksessa. Checkkaa ekan vakiona.
 function lisaaSarjaRadiot() {
@@ -223,7 +303,7 @@ function lisaaSarjaRadiot() {
         if (i == 0) {
             let span = document.createElement('span');
             span.textContent = 'Sarja';
-            span.setAttribute('id', 'sarja');
+            span.setAttribute('id', 'sarjaSpan');
             div.appendChild(span);
         }
 
@@ -290,6 +370,22 @@ function getSarjanId(nimi) {
     for (const sarja of data.sarjat) {
         if (sarja.nimi === nimi) {
             return sarja.id;
+        }
+    }
+
+    return null;
+}
+
+
+/**
+ * Hakee leimaustavan nimella sen indeksin datasta
+ */
+ function getLeimausIdx(nimi) {
+
+    for (let i = 0; i < data.leimaustapa.length; i++) {
+        const tapa = data.leimaustapa[i];
+        if (tapa === nimi){
+            return i;
         }
     }
 
