@@ -1,7 +1,10 @@
+
+
 fieldset {
     display: flex;
     flex-direction: column;
-    width: 20em;
+    width: auto;
+    max-width: 25em;
 
 }
 

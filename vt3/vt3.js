@@ -9,15 +9,18 @@ inputHandler();
 inputHandler();
 luoJoukkueListaus();
 
+// Event handlerit
+// ======================================================================================================
+
 let nimi = document.querySelector("#nimi");
 nimi.addEventListener('blur', function (e) { // Valittaa nimesta kun siirrytaan seuraavaan kenttaan.
     nimi.setCustomValidity(nimiCustomValidity(nimi));
     e.target.reportValidity();
 });
 
-let form = document.forms[0];
 
 // Event handler submitille
+let form = document.forms[0];
 form.addEventListener('submit', function (e) {
     e.preventDefault();
     nimi.setCustomValidity(nimiCustomValidity(nimi));
@@ -42,9 +45,11 @@ form.addEventListener('submit', function (e) {
         inputHandler();
     }
 
+    // Paivitetaan joukkuelistaus
     luoJoukkueListaus();
 });
 
+// ======================================================================================================
 
 function luoJoukkueListaus() {
     let list = document.getElementById('joukkuelistaus');
@@ -67,22 +72,20 @@ function luoJoukkueListaus() {
 }
 
 
-function sortJoukkueet(joukkueet) {
-    joukkueet.sort((a, b) => compareNames(a.nimi, b.nimi, true));
-    joukkueet.sort((a, b) => compareNames(getSarjanNimi(a.sarja), getSarjanNimi(b.sarja)));
-}
-
 function luoJoukkueLiElement(joukkue) {
+    
+    // li-elementti johon joukkueen nimi ja boldattu sarjan nimi
     let li = document.createElement('li');
     let textNode1 = document.createTextNode(joukkue.nimi.trim() + ' ');
     let str = getSarjanNimi(joukkue.sarja);
-    let sarjanNimi = str.substring(0, 1) + ' ' + str.substring(1);  // Vali sarjan nimeen
+    let sarjanNimi = str.substring(0, 1) + ' ' + str.substring(1);  // Vali sarjan nimeen '8 h'
     let textNode2 = document.createTextNode(sarjanNimi);
     let strong = document.createElement('strong');
     strong.appendChild(textNode2);
     li.appendChild(textNode1);
     li.appendChild(strong);
-
+    
+    // li-elementit jasenille ja ne ul:n sisaan
     let ul = document.createElement('ul');
     for (let i = 0; i < joukkue.jasenet.length; i++) {
         const jasen = joukkue.jasenet[i];
@@ -90,13 +93,24 @@ function luoJoukkueLiElement(joukkue) {
         jasenli.textContent = jasen;
         ul.appendChild(jasenli);
     }
+    // jasenten ul joukkueen li:n sisaan
     li.appendChild(ul);
+    
     return li;
 }
 
 
-function lisaaJoukkue(nimi, sarja, jasenet) {
+function sortJoukkueet(joukkueet) {
+    // Ensisijaisesti nimen mukaan
+    joukkueet.sort((a, b) => compareNames(a.nimi, b.nimi, true));
 
+     // Toissijaisesti sarjan mukaan
+    joukkueet.sort((a, b) => compareNames(getSarjanNimi(a.sarja), getSarjanNimi(b.sarja)));
+}
+
+
+function lisaaJoukkue(nimi, sarja, jasenet) {
+    
     let leimaustapa = [0];  // Hardcoded
     let rastit = {};        // Hardcoded
 
