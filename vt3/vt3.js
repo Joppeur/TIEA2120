@@ -7,6 +7,7 @@
 lisaaSarjaRadiot();
 inputHandler();
 inputHandler();
+luoJoukkueListaus();
 
 let nimi = document.querySelector("#nimi");
 nimi.addEventListener('blur', function (e) { // Valittaa nimesta kun siirrytaan seuraavaan kenttaan.
@@ -14,8 +15,9 @@ nimi.addEventListener('blur', function (e) { // Valittaa nimesta kun siirrytaan 
     e.target.reportValidity();
 });
 
-
 let form = document.forms[0];
+
+// Event handler submitille
 form.addEventListener('submit', function (e) {
     e.preventDefault();
     nimi.setCustomValidity(nimiCustomValidity(nimi));
@@ -39,7 +41,58 @@ form.addEventListener('submit', function (e) {
         e.target.reset();
         inputHandler();
     }
+
+    luoJoukkueListaus();
 });
+
+
+function luoJoukkueListaus() {
+    let list = document.getElementById('joukkuelistaus');
+
+    // Tyhjennetaan listaus
+    while(list.hasChildNodes()) {
+        list.lastElementChild.remove();
+    }
+
+    // Luodaan kopio joukkuedatasta, ja sortataan.
+    let joukkueet = [...data.joukkueet];
+    sortJoukkueet(joukkueet);
+
+    // Tehdaan jokaiselle joukkueelle oma li
+    for (let i = 0; i < joukkueet.length; i++) {
+        const joukkue = joukkueet[i];
+        let joukkueli = luoJoukkueLiElement(joukkue);
+        list.appendChild(joukkueli);
+    }
+}
+
+
+function sortJoukkueet(joukkueet) {
+    joukkueet.sort((a, b) => compareNames(a.nimi, b.nimi, true));
+    joukkueet.sort((a, b) => compareNames(getSarjanNimi(a.sarja), getSarjanNimi(b.sarja)));
+}
+
+function luoJoukkueLiElement(joukkue) {
+    let li = document.createElement('li');
+    let textNode1 = document.createTextNode(joukkue.nimi.trim() + ' ');
+    let str = getSarjanNimi(joukkue.sarja);
+    let sarjanNimi = str.substring(0, 1) + ' ' + str.substring(1);  // Vali sarjan nimeen
+    let textNode2 = document.createTextNode(sarjanNimi);
+    let strong = document.createElement('strong');
+    strong.appendChild(textNode2);
+    li.appendChild(textNode1);
+    li.appendChild(strong);
+
+    let ul = document.createElement('ul');
+    for (let i = 0; i < joukkue.jasenet.length; i++) {
+        const jasen = joukkue.jasenet[i];
+        let jasenli = document.createElement('li');
+        jasenli.textContent = jasen;
+        ul.appendChild(jasenli);
+    }
+    li.appendChild(ul);
+    return li;
+}
 
 
 function lisaaJoukkue(nimi, sarja, jasenet) {
@@ -188,19 +241,21 @@ function lisaaSarjaRadiot() {
 // ========================================================================================================
 
 function compareNames(a, b, asc) {
+    a = a.toUpperCase();
+    b = b.toUpperCase();
     if (asc) {
-        if (a.toUpperCase() < b.toUpperCase()) {
+        if (a < b) {
             return -1;
         }
-        if (a.toUpperCase() > b.toUpperCase()) {
+        if (a > b) {
             return 1;
         }
         return 0;
     } else {
-        if (a.toUpperCase() < b.toUpperCase()) {
+        if (a < b) {
             return 1;
         }
-        if (a.toUpperCase() > b.toUpperCase()) {
+        if (a > b) {
             return -1;
         }
         return 0;
@@ -243,6 +298,20 @@ function getJoukkueByNimi(nimi) {
     for (const joukkue of data.joukkueet) {
         if (joukkue.nimi.toUpperCase() === nimi.toUpperCase()) {
             return joukkue;
+        }
+    }
+    return null;
+}
+
+
+/**
+ * Hakee sarjaid:lla sarjan nimen.
+ * @param {*} sarjaid 
+ */
+ function getSarjanNimi(sarjaid) {
+    for (const sarja of data.sarjat) {
+        if (sarja.id === sarjaid) {
+            return sarja.nimi;
         }
     }
     return null;
