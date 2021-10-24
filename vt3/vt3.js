@@ -60,7 +60,6 @@ function lisaaJoukkue(nimi, sarja, jasenet) {
 }
 
 
-
 function nimiCustomValidity(nimi) {
     if (nimi.value.trim().length < 2) {
         return 'Joukkueen nimen on oltava vähintään kaksi merkkiä pitkä.';
@@ -123,6 +122,7 @@ function inputHandler() {
     }
 
 }
+
 
 function luoJasenInput() {
     let div = document.createElement('div');
@@ -187,7 +187,6 @@ function lisaaSarjaRadiot() {
 // Aiempien tasojen juttuja.
 // ========================================================================================================
 
-
 function compareNames(a, b, asc) {
     if (asc) {
         if (a.toUpperCase() < b.toUpperCase()) {
@@ -247,66 +246,4 @@ function getJoukkueByNimi(nimi) {
         }
     }
     return null;
-}
-
-
-function luoJoukkueet() {
-    let joukkueet = JSON.parse(JSON.stringify(data.joukkueet));
-    joukkueet = joukkueet.map((j) => {
-        j.pisteet = laskePisteet(j);
-        return j;
-    });
-    return joukkueet;
-}
-
-
-// objekti, jossa viitteet rasteihin, key on rastin id
-function luoRastit() {
-    let rastit = {};
-    for (const rasti of data.rastit) {
-        if (rasti.id) {
-            rastit[rasti.id] = rasti;
-        }
-    }
-    return rastit;
-}
-
-
-function laskePisteet(joukkue) {
-    let arr = haeRastit(joukkue);
-    let summa = 0;
-    for (const r of arr) {
-        if (isFinite(r[0])) {
-            summa = summa + parseInt(r[0]);
-        }
-    }
-    return summa;
-}
-
-
-function haeRastit(joukkue) {
-    let arr = [];
-    let kayty = {};
-    let alku = false;
-    let rastit = luoRastit();
-    for (const r of joukkue.rastit) {
-        let rasti = rastit[r.rasti];
-        if (typeof rasti === 'object') {  //varmistetaan, että rasti on objekti eikä jotain outoa
-            if (rasti.koodi === "LAHTO") {     //jos rasti on lähtö,
-                arr = [];                       // nollataan aiemmin mahdollisesti kertyneet rastit
-                alku = true;                    // merkitään alku todeksi
-            } else if (rasti.koodi === 'MAALI' && alku) { // jos rasti on maali ja alku on totta, eli aiemmin on ollut lähtö,
-                return arr;                                 // palautetaan arr, johon on kertynyt tähänastiset rastit
-            } else {
-                for (const d of data.rastit) {
-                    if (Object.is(d, rasti) && kayty[rasti.koodi] === undefined && alku === true) {  // etsitään, onko tietokannassa rastia joka vastaa joukkueen merkitsemää
-                        kayty[rasti.koodi] = true;
-                        arr.push(rasti.koodi);    // jos rasti vastaa tietokannan rastia, lisätään sen koodi listaan
-                    }
-                }
-            }
-
-        }
-    }
-    return arr;
 }
