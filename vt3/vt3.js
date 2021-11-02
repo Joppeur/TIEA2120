@@ -21,7 +21,7 @@ nimi.addEventListener('blur', function (e) {
 });
 
 
-// Valittaa mahdollisesta tyhjasta leimauksesta kun yritetaPan siirtya seuraavaan kenttaan viimeisesta checkboxista.
+// Valittaa mahdollisesta tyhjasta leimauksesta kun yritetaan siirtya seuraavaan kenttaan viimeisesta checkboxista.
 let lastCheckbox = document.querySelector("#leimaukset > div:last-child input");
 lastCheckbox.addEventListener('blur', function(e) {
     e.target.reportValidity();
