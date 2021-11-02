@@ -54,20 +54,27 @@ function lisaaPalkki(delay, zIndex) {
     // Vaihtaa palkin varin animaation lopussa.
     svg.addEventListener('animationiteration', (e) => {
         rect = e.target.firstElementChild;
-        switch (rect.gradient) {
-            case "1":
-                rect.setAttribute("fill", "url(#Gradient2)");
-                rect.gradient = "2";
-                break;
-        
-            case "2":
-                rect.setAttribute("fill", "url(#Gradient1)");
-                rect.gradient = "1";
-                break;
-        }
+        vaihdaGradient(rect);
       });
 
     document.body.prepend(svg);
 }
 
+/**
+ * Vaihtaa SVG palikan rectanglen gradientin
+ * @param {*} palikkaRect SVG palikan rectangle element
+ */
+function vaihdaGradient(palikkaRect) {
+    switch (palikkaRect.gradient) {
+        case "1":
+            palikkaRect.setAttribute("fill", "url(#Gradient2)");
+            palikkaRect.gradient = "2";
+            break;
+    
+        case "2":
+            palikkaRect.setAttribute("fill", "url(#Gradient1)");
+            palikkaRect.gradient = "1";
+            break;
+    }
+}
 
