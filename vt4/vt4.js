@@ -5,26 +5,28 @@ const PALIKOITA = 10;
 const PALIKKA_CSS_WIDTH = "10%";
 const PALIKKA_ANIMATION_DELAY_MS = 100;
 
+// Naiden kasvattimen ei hajota polloa useampaan osaan 
+// (meinasin ensin koodata sen niin, mutta turhaa tyota)
 const POLLO_X_TILES = 2;
 const POLLO_Y_TILES = 2;
 
 let polloImgTiles = [];
 
 window.addEventListener("load", function () {
-    //lisaaPalkit(PALIKOITA, PALIKKA_ANIMATION_DELAY_MS);
+    lisaaPalkit(PALIKOITA, PALIKKA_ANIMATION_DELAY_MS);
     splitThePollo();
 });
 
 
 
 function splitThePollo() {
-    // window.addEventListener("resize", resizeCanvas, false);
-
     let img = document.getElementById('pollo');
 
     // Double tilde poistaa desimaalit. Bittikikkailua.
     let tileLeveys = ~~(img.width/POLLO_X_TILES);
     let tileKorkeus = ~~(img.height/POLLO_Y_TILES);
+
+    let slicet = [];
 
 
     // Slice top left
@@ -42,6 +44,7 @@ function splitThePollo() {
     document.body.prepend(polloSliceCanvas1);
     let ctx1 = polloSliceCanvas1.getContext('2d');
     ctx1.drawImage(img, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight);
+    slicet.push(polloSliceCanvas1);
 
     // Slice top right
     sourceX = tileLeveys;
@@ -51,6 +54,7 @@ function splitThePollo() {
     document.body.prepend(polloSliceCanvas2);
     let ctx2 = polloSliceCanvas2.getContext('2d');
     ctx2.drawImage(img, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight);
+    slicet.push(polloSliceCanvas2);
 
     // Slice bottom left
     sourceX = 0;
@@ -61,8 +65,10 @@ function splitThePollo() {
     document.body.prepend(polloSliceCanvas3);
     let ctx3 = polloSliceCanvas3.getContext('2d');
     ctx3.drawImage(img, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight);
-    
-    // Slice top right
+    slicet.push(polloSliceCanvas3);
+
+
+    // Slice bottom right
     sourceX = tileLeveys;
     sourceY = tileLeveys;
     let polloSliceCanvas4 = luoPolloSliceCanvas(destWidth, destHeight);
@@ -71,28 +77,40 @@ function splitThePollo() {
     document.body.prepend(polloSliceCanvas4);
     let ctx4 = polloSliceCanvas4.getContext('2d');
     ctx4.drawImage(img, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight);
+    slicet.push(polloSliceCanvas4);
 
 
-    for (let i = 0; i < 5; i++) {
-        polloSliceAnimate(i);
+    // Lisataan animaatiot
+    for (let i = 0; i < slicet.length; i++) {
+        let slice = slicet[i];
+        polloSliceAnimate(slice, i);
     }
 
-
-
-    // ctx.drawImage(img, (canvas.width - img.width)/2, (canvas.height - img.height)/2, 100, 100, 200, 200, 200, 20);
-    // ctx.drawImage(img, 0, 0, 100, 100);
-
-
-
-    // resizeCanvas(canvas);
-    //drawImageOnCanvas(canvas);
 }
 
-function polloSliceAnimate(index) {
-    let keyframes = findKeyframesRule("pingviiniMove1");
-    console.log(keyframes);
+
+/**
+ * Lisaa polloSlicelle .styleen oikean css animationNamen
+ * @param {*} polloSlice Polloslicen canvas 
+ * @param {*} index index 0 = top left, 1 = top right, 2 = bottom left, 3 = bottom right
+ */
+function polloSliceAnimate(polloSlice, index) {
+    console.log(polloSlice, index);
+    polloSlice.style.position = "absolute";
+    polloSlice.style.left = "0";
+    polloSlice.style.top = "0";
+    polloSlice.style.zIndex = "200";
+
+    polloSlice.style.animationName = `polloSliceMove${index+1}`;
 }
 
+
+/**
+ * Luo annetun kokoisen polloSlice canvaksen
+ * @param {*} width 
+ * @param {*} height 
+ * @returns 
+ */
 function luoPolloSliceCanvas(width, height) {
     let newCanvas = document.createElement('canvas');
     newCanvas.setAttribute('class', 'polloSlice');
@@ -100,13 +118,6 @@ function luoPolloSliceCanvas(width, height) {
     newCanvas.setAttribute('height', height);
     newCanvas.style.position = "absolute";
     return newCanvas;
-}
-
-function resizeCanvas() {
-    let canvas = document.getElementById('polloCanvas');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    // drawImageOnCanvas(canvas);
 }
 
 

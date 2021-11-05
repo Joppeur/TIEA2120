@@ -21,7 +21,6 @@ body {
 
 .stop1 {
     stop-color: black;
-    animation-name: leftRight;
 } 
 
 .stop2a {
@@ -94,6 +93,51 @@ body {
     left: 0;
     transform: translate(calc(100vw - 100%), calc(100vh - 100%));
     animation-name: pingviiniMove2;
+}
+
+
+@keyframes polloSliceMove1 {
+    from {
+        transform: translate(calc(50vw - 100%), calc(50vh - 100%))
+
+    }
+
+    to {
+        transform: translate(calc(0vw - 0%), 0);
+    }
+}
+
+@keyframes polloSliceMove2 {
+    from {
+        transform: translate(calc(50vw), calc(50vh - 100%))
+
+    }
+
+    to {
+        transform: translate(calc(100vw - 100%), calc(0vh));
+    }
+}
+
+@keyframes polloSliceMove3 {
+    from {
+        transform: translate(calc(50vw - 100%), calc(50vh))
+
+    }
+
+    to {
+        transform: translate(0, calc(100vh - 100%));
+    }
+}
+
+@keyframes polloSliceMove4 {
+    from {
+        transform: translate(calc(50vw), calc(50vh))
+
+    }
+
+    to {
+        transform: translate(calc(100vw - 100%), calc(100vh - 100%));
+    }
 }
 
 @keyframes pingviiniMove1 {
