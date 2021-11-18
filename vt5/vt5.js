@@ -14,6 +14,7 @@ window.addEventListener("load", function () {
 });
 
 
+//Ree
 function naytaRastit() {
     let list = document.querySelector('.rastit ul');
 
