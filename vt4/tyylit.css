@@ -1,0 +1,166 @@
+body {
+    margin: 0px;
+    height: 100vh;
+    width: 100vw;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+#polloCanvas {
+    position: absolute;
+    animation-name: leftRight;
+    
+    z-index: 200;
+}
+
+#pollo {
+    position: absolute;
+    visibility: hidden;
+    /* width: 100px; */
+}
+
+.stop1 {
+    stop-color: black;
+} 
+
+.stop2a {
+    stop-color: rgb(0, 255, 0);
+} 
+
+.stop2b {
+    stop-color: rgb(0, 255, 255);
+} 
+
+.stop3 { 
+    stop-color: black;
+}
+
+.polloSlice {
+    position: absolute;
+    left: 0;
+    animation-duration: 3s;
+    animation-direction: alternate;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-in-out;
+}
+
+
+ .palkki {
+    position: absolute;
+    left: 0;
+    animation-name: leftRight;
+    animation-duration: 3s;
+    animation-direction: alternate;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-in-out;
+    animation-fill-mode: both;
+
+    /* visibility: hidden; */
+}
+
+@keyframes leftRight {
+    from {
+        transform: translate(calc(0vw - 100%), 0);
+        
+    }
+
+
+    to {
+        transform: translate(calc(100vw), 0);
+        
+    }
+}
+
+.pingviini {
+    position: absolute;
+    animation-duration: 3s;
+    animation-direction: alternate;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-in-out;
+    
+    /* visibility: hidden; */
+}
+
+#pingviini1 {
+    position: absolute;
+    left: 0;
+    transform: translate(0, 0);
+    animation-name: pingviiniMove1;
+}
+
+#pingviini2 {
+    position: absolute;
+    left: 0;
+    transform: translate(calc(100vw - 100%), calc(100vh - 100%));
+    animation-name: pingviiniMove2;
+}
+
+
+@keyframes polloSliceMove1 {
+    from {
+        transform: translate(calc(50vw - 100%), calc(50vh - 100%))
+
+    }
+
+    to {
+        transform: translate(calc(0vw - 0%), 0);
+    }
+}
+
+@keyframes polloSliceMove2 {
+    from {
+        transform: translate(calc(50vw), calc(50vh - 100%))
+
+    }
+
+    to {
+        transform: translate(calc(100vw - 100%), calc(0vh));
+    }
+}
+
+@keyframes polloSliceMove3 {
+    from {
+        transform: translate(calc(50vw - 100%), calc(50vh))
+
+    }
+
+    to {
+        transform: translate(0, calc(100vh - 100%));
+    }
+}
+
+@keyframes polloSliceMove4 {
+    from {
+        transform: translate(calc(50vw), calc(50vh))
+
+    }
+
+    to {
+        transform: translate(calc(100vw - 100%), calc(100vh - 100%));
+    }
+}
+
+@keyframes pingviiniMove1 {
+    from {
+        transform: translate(0, 0);
+
+    }
+    50% {
+        transform: translate(calc(50vw - 50%), calc(100vh - 100%));
+    }
+    to {
+        transform: translate(calc(100vw - 100%), 0);
+    }
+}
+
+@keyframes pingviiniMove2 {
+    from {
+        transform: translate(calc(100vw - 100%), calc(100vh - 100%));
+    }
+    50% {
+        transform: translate(calc(50vw - 50%), 0vh);
+    }
+    to {
+        transform: translate(calc(0vw), calc(100vh - 100%));
+    }
+}

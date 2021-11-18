@@ -14,12 +14,12 @@ fieldset {
     justify-content: space-between;
 }
 
-#sarja {
+#sarjaSpan, #checkboxSpan {
     display: flex;
     margin-right: auto;
 }
 
-.radio {
+.radio, .checkbox {
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
