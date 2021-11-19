@@ -6,23 +6,159 @@
 
 // kirjoita tänne oma ohjelmakoodisi
 // 8203adda-2a75-4b26-b1b0-0811028b3cd2
+let dragged;
 
+let kartta = luoKartta();
+let karttaAddedLayers = new Map();
 window.addEventListener("load", function () {
-    let kartta = luoKartta();
-    naytaJoukkuuet();
-    naytaRastit();
+    naytaJoukkuuet(data.joukkueet);
+    naytaRastiLista(data.rastit);
+    handleJoukkueDrop(kartta);
+    teeDropKohde(document.querySelector('.dragMap > div'), ['joukkue', 'rasti']);
+    teeDropKohde(document.querySelector('.joukkueet div > ul'), ['joukkue']);
+    teeDropKohde(document.querySelector('.rastit div > ul'), ['rasti']);
+    let rastiYmpyrat = piirraRastit(kartta, data.rastit);
+    kartta.fitBounds(rastiYmpyrat.getBounds());
+    // piirraMatka(kartta, data.joukkueet[0]);
 });
 
 
-//Ree
-function naytaRastit() {
+function piirraMatka(kartta, joukkue, vari) {
+    let rastit = getValidRastit(joukkue);
+
+    let latlngs = [];
+    for (let i = 0; i < rastit.length; i++) {
+        const rasti = rastit[i];
+        latlngs.push([rasti.lat, rasti.lon]);
+    }
+    let polyline = L.polyline(latlngs, {color: vari}).addTo(kartta);
+    return polyline;
+}
+
+
+function handleJoukkueDrop() {
+    let dragMap = document.querySelector('.dragMap');
+    dragMap.addEventListener('dragstart', function (e) {
+        if (dragged.getAttribute('class') == 'joukkue') {
+            console.log("Start");
+            let poistettavaPolyline = karttaAddedLayers.get(dragged.joukkueId);
+            if (poistettavaPolyline) {
+                poistettavaPolyline.remove();
+                karttaAddedLayers.delete(dragged.joukkueId);
+                console.log(poistettavaPolyline);
+            }
+            else {
+                console.error("Couldn't remove polyline");
+            }
+        }
+    });
+
+    dragMap.addEventListener('dragend', function (e) {
+        if (dragged.getAttribute('class') == 'joukkue') {
+            console.log("End");
+
+            // Haetaan li:n stylesta rgb vari ja muutetaan se hexiksi Leaflettia varten
+            let vari = e.target.style.backgroundColor;
+            vari = (vari.match(/([0-9])+/g));
+            let hexVari = rgbToHex(...vari);
+
+            let pl = piirraMatka(kartta, getJoukkueById(dragged.joukkueId), hexVari);
+            karttaAddedLayers.set(dragged.joukkueId, pl);
+        }
+    });
+}
+
+
+function getJoukkueById(joukkueId) {
+    for (let i = 0; i < data.joukkueet.length; i++) {
+        const joukkue = data.joukkueet[i];
+        if (joukkue.id == joukkueId) {
+            return joukkue;
+        }
+    }
+    return null;
+}
+
+
+function teeDropKohde(element, sallitutLuokat) {
+    if (sallitutLuokat.length > 0) {
+        element.sallitutLuokat = sallitutLuokat;
+    } else {
+        console.error('Aseta sallitut luokat.');
+        return;
+    }
+
+    element.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        if ( e.dataTransfer.types.some(x => sallitutLuokat.includes(x))) {
+            e.dataTransfer.dropEffect = "move";
+          }
+          else {
+            e.dataTransfer.dropEffect = "none";
+          }
+    });
+
+    element.addEventListener('drop', function(e) {
+        e.preventDefault();
+
+        // Toimii, koska olen nimennyt datatypen luokkien mukaan.
+        // Koko homman voisi varmaan tehda ilman tuota globaalia dragged-muuttujaa,
+        // mutta imo helpottaa hommaa huomattavasti.
+        let draggedClass = dragged.getAttribute('class');
+        let data = e.dataTransfer.getData(draggedClass);
+        if(data) {
+            try {
+                let target = e.target;
+
+                // Jos elementti dropataan li:n paalle, laitetaan kohteeksi sen parent, eli ul.
+                if (target.nodeName === "LI") {
+                    target = e.target.parentElement;
+                }
+
+                if (target.sallitutLuokat.includes(draggedClass)) {
+                     target.appendChild(dragged);
+                    
+                } else {
+                    throw 'Drop kohde ei hyväksy tätä luokkaa';
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+    });
+}
+
+function piirraRastit(kartta, rastit) {
+    let rastiYmpyrat = [];
+    rastit.forEach(rasti => {
+        let circle = piirraRastiYmpyra(kartta, rasti, 150);
+        rastiYmpyrat.push(circle);
+    });
+    return new L.featureGroup([...rastiYmpyrat]);
+}
+
+
+function piirraRastiYmpyra(kartta, rasti, radius) {
+    let circle = L.circle([rasti.lat, rasti.lon], {
+        color: 'red',
+        fillColor: '#f03',
+        fillOpacity: '0',
+        radius: radius
+    });
+
+    circle.addTo(kartta);
+    return circle;
+}
+
+
+function naytaRastiLista(inputRastit) {
     let list = document.querySelector('.rastit ul');
 
     while (list.hasChildNodes()) {
         list.lastChild.remove();
     }
 
-    let rastit = [...data.rastit];
+    let rastit = [...inputRastit];
 
     // sortRastit(rastit);
     rastit.sort((a, b) => compareNames(a.koodi, b.koodi, false));
@@ -38,19 +174,28 @@ function naytaRastit() {
 
 function luoRastiLi(rasti) {
     let li = document.createElement('li');
+    li.setAttribute('class', 'rasti');
     li.textContent = rasti.koodi;
+
+    li.setAttribute('draggable', 'true');
+    li.rastiId = rasti.id;
+    li.addEventListener('dragstart', function(e) {
+        e.dataTransfer.setData('rasti', li.rastiId);
+        dragged = e.target;
+    });
+
     return li;
 }
 
 
-function naytaJoukkuuet() {
+function naytaJoukkuuet(inputJoukkueet) {
     let list = document.querySelector('.joukkueet ul');
 
     while (list.hasChildNodes()) {
         list.lastChild.remove();
     }
 
-    let joukkueet = [...data.joukkueet];
+    let joukkueet = [...inputJoukkueet];
 
     laskeMatkat(joukkueet);
     sortJoukkueet(joukkueet);
@@ -184,6 +329,18 @@ function luoJoukkueLiElement(joukkue) {
     let textNode2 = document.createTextNode(str);
     li.appendChild(textNode1);
     li.appendChild(textNode2);
+
+    li.setAttribute('class', 'joukkue');
+    li.setAttribute('draggable', 'true');
+    li.joukkueId = joukkue.id;
+    li.addEventListener('dragstart', function(e) {
+        e.dataTransfer.setData('joukkue', li.joukkueId);
+        dragged = e.target;
+    });
+
+    // li.addEventListener('dragend', function(e) {
+    //     console.log('DragEnd');
+    // });
     
     // // li-elementit jasenille ja ne ul:n sisaan
     // let ul = document.createElement('ul');
@@ -285,4 +442,15 @@ function rainbow(numOfSteps, step) {
     }
     let c = "#" + ("00" + (~ ~(r * 255)).toString(16)).slice(-2) + ("00" + (~ ~(g * 255)).toString(16)).slice(-2) + ("00" + (~ ~(b * 255)).toString(16)).slice(-2);
     return (c);
+}
+
+
+// https://stackoverflow.com/a/39077686
+function rgbToHex (r, g, b) {
+return '#' + [r, g, b].map(x => {
+    const hex = parseInt(x).toString(16)
+    return hex.length === 1 ? '0' + hex : hex
+  }).join('');
+  
+  console.log(rgbToHex(0, 51, 255)); // '#0033ff'
 }
