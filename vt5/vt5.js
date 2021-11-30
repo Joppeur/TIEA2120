@@ -5,24 +5,33 @@
 
 
 // kirjoita tänne oma ohjelmakoodisi
-// 8203adda-2a75-4b26-b1b0-0811028b3cd2
+
+// tein dragattavasta joukkuen li elementista globaalin muuttujan
 let dragged;
 
 let kartta = luoKartta();
+// Tässä pidetään muistissa Leaflet karttaan piirrettyjä layereita.
 let karttaAddedLayers = new Map();
+
 window.addEventListener("load", function () {
     naytaJoukkuuet(data.joukkueet);
     naytaRastiLista(data.rastit);
-    handleJoukkueDrop(kartta);
+    handleJoukkueDragDrop(kartta);
     teeDropKohde(document.querySelector('.dragMap > div'), ['joukkue', 'rasti']);
     teeDropKohde(document.querySelector('.joukkueet div > ul'), ['joukkue']);
     teeDropKohde(document.querySelector('.rastit div > ul'), ['rasti']);
     let rastiYmpyrat = piirraRastit(kartta, data.rastit);
     kartta.fitBounds(rastiYmpyrat.getBounds());
-    // piirraMatka(kartta, data.joukkueet[0]);
 });
 
 
+/**
+ * Piirtaa joukkueen kulkeman matkan leaflet karttaan
+ * @param {*} kartta 
+ * @param {*} joukkue 
+ * @param {*} vari 
+ * @returns 
+ */
 function piirraMatka(kartta, joukkue, vari) {
     let rastit = getValidRastit(joukkue);
 
@@ -31,16 +40,16 @@ function piirraMatka(kartta, joukkue, vari) {
         const rasti = rastit[i];
         latlngs.push([rasti.lat, rasti.lon]);
     }
-    let polyline = L.polyline(latlngs, {color: vari}).addTo(kartta);
+    let polyline = L.polyline(latlngs, { color: vari }).addTo(kartta);
     return polyline;
 }
 
 
-function handleJoukkueDrop() {
+function handleJoukkueDragDrop() {
     let dragMap = document.querySelector('.dragMap');
+
     dragMap.addEventListener('dragstart', function (e) {
         if (dragged.getAttribute('class') == 'joukkue') {
-            console.log("Start");
             let poistettavaPolyline = karttaAddedLayers.get(dragged.joukkueId);
             if (poistettavaPolyline) {
                 poistettavaPolyline.remove();
@@ -53,18 +62,20 @@ function handleJoukkueDrop() {
         }
     });
 
-    dragMap.addEventListener('dragend', function (e) {
+    dragMap.addEventListener('drop', function (e) {
+        // Haetaan li:n stylesta rgb vari ja muutetaan se hexiksi Leaflettia varten
+        let vari = dragged.style.backgroundColor;
+        vari = (vari.match(/([0-9])+/g));
+        let hexVari = rgbToHex(...vari);
+
+        dragged.style.left = e.clientX.toString() + 'px';
+        dragged.style.top = e.clientY.toString() + 'px';
+
         if (dragged.getAttribute('class') == 'joukkue') {
-            console.log("End");
-
-            // Haetaan li:n stylesta rgb vari ja muutetaan se hexiksi Leaflettia varten
-            let vari = e.target.style.backgroundColor;
-            vari = (vari.match(/([0-9])+/g));
-            let hexVari = rgbToHex(...vari);
-
             let pl = piirraMatka(kartta, getJoukkueById(dragged.joukkueId), hexVari);
             karttaAddedLayers.set(dragged.joukkueId, pl);
         }
+
     });
 }
 
@@ -80,6 +91,12 @@ function getJoukkueById(joukkueId) {
 }
 
 
+/**
+ * Lisaa elementille drop eventlistenerit
+ * @param {*} element 
+ * @param {*} sallitutLuokat Minka tyyppisia elementteja voi pudottaa
+ * @returns 
+ */
 function teeDropKohde(element, sallitutLuokat) {
     if (sallitutLuokat.length > 0) {
         element.sallitutLuokat = sallitutLuokat;
@@ -88,17 +105,17 @@ function teeDropKohde(element, sallitutLuokat) {
         return;
     }
 
-    element.addEventListener('dragover', function(e) {
+    element.addEventListener('dragover', function (e) {
         e.preventDefault();
-        if ( e.dataTransfer.types.some(x => sallitutLuokat.includes(x))) {
+        if (e.dataTransfer.types.some(x => sallitutLuokat.includes(x))) {
             e.dataTransfer.dropEffect = "move";
-          }
-          else {
+        }
+        else {
             e.dataTransfer.dropEffect = "none";
-          }
+        }
     });
 
-    element.addEventListener('drop', function(e) {
+    element.addEventListener('drop', function (e) {
         e.preventDefault();
 
         // Toimii, koska olen nimennyt datatypen luokkien mukaan.
@@ -106,7 +123,7 @@ function teeDropKohde(element, sallitutLuokat) {
         // mutta imo helpottaa hommaa huomattavasti.
         let draggedClass = dragged.getAttribute('class');
         let data = e.dataTransfer.getData(draggedClass);
-        if(data) {
+        if (data) {
             try {
                 let target = e.target;
 
@@ -116,8 +133,8 @@ function teeDropKohde(element, sallitutLuokat) {
                 }
 
                 if (target.sallitutLuokat.includes(draggedClass)) {
-                     target.appendChild(dragged);
-                    
+                    target.appendChild(dragged);
+
                 } else {
                     throw 'Drop kohde ei hyväksy tätä luokkaa';
                 }
@@ -127,6 +144,7 @@ function teeDropKohde(element, sallitutLuokat) {
         }
     });
 }
+
 
 function piirraRastit(kartta, rastit) {
     let rastiYmpyrat = [];
@@ -159,8 +177,6 @@ function naytaRastiLista(inputRastit) {
     }
 
     let rastit = [...inputRastit];
-
-    // sortRastit(rastit);
     rastit.sort((a, b) => compareNames(a.koodi, b.koodi, false));
 
     for (let i = 0; i < rastit.length; i++) {
@@ -179,8 +195,9 @@ function luoRastiLi(rasti) {
 
     li.setAttribute('draggable', 'true');
     li.rastiId = rasti.id;
-    li.addEventListener('dragstart', function(e) {
+    li.addEventListener('dragstart', function (e) {
         e.dataTransfer.setData('rasti', li.rastiId);
+        // Globaali muuttuja
         dragged = e.target;
     });
 
@@ -188,6 +205,10 @@ function luoRastiLi(rasti) {
 }
 
 
+/**
+ * Listaa joukkueet nimet ul:n sisaan matkoineen
+ * @param {*} inputJoukkueet 
+ */
 function naytaJoukkuuet(inputJoukkueet) {
     let list = document.querySelector('.joukkueet ul');
 
@@ -223,6 +244,12 @@ function laskeMatkat(joukkueet) {
 }
 
 
+/**
+ * 
+ * @param {*} validRastit Rastit joista puhdistettu vääränlaiset rastit 
+ * ja jätetty vain oikea maali ja lähtö
+ * @returns Joukkueen kuljettu matka kilometreissä
+ */
 function laskeMatka(validRastit) {
     let kuljettuMatka = 0;
     for (let i = 0; i < validRastit.length - 1; i++) {
@@ -242,7 +269,7 @@ function laskeMatka(validRastit) {
  * Hakee joukkueen rastin id:lla datan rasti objektin.
  * @param {*} rastiId
  */
- function getRastiById(rastiId) {
+function getRastiById(rastiId) {
     for (const rasti of data.rastit) {
         if (rasti.id === rastiId) {
             return rasti;
@@ -319,11 +346,11 @@ function isRastiValid(data, rasti) {
 
 
 function luoJoukkueLiElement(joukkue) {
-    
+
     // li-elementti johon joukkueen nimi ja boldattu etaisyys
     let li = document.createElement('li');
     let textNode1 = document.createTextNode(joukkue.nimi.trim() + ' ');
-    
+
     let str = `(${joukkue.kuljettuMatka.toFixed(1)} km)`;
 
     let textNode2 = document.createTextNode(str);
@@ -333,7 +360,7 @@ function luoJoukkueLiElement(joukkue) {
     li.setAttribute('class', 'joukkue');
     li.setAttribute('draggable', 'true');
     li.joukkueId = joukkue.id;
-    li.addEventListener('dragstart', function(e) {
+    li.addEventListener('dragstart', function (e) {
         e.dataTransfer.setData('joukkue', li.joukkueId);
         dragged = e.target;
     });
@@ -341,7 +368,7 @@ function luoJoukkueLiElement(joukkue) {
     // li.addEventListener('dragend', function(e) {
     //     console.log('DragEnd');
     // });
-    
+
     // // li-elementit jasenille ja ne ul:n sisaan
     // let ul = document.createElement('ul');
     // for (let i = 0; i < joukkue.jasenet.length; i++) {
@@ -352,7 +379,7 @@ function luoJoukkueLiElement(joukkue) {
     // }
     // // jasenten ul joukkueen li:n sisaan
     // li.appendChild(ul);
-    
+
     return li;
 }
 
@@ -361,10 +388,6 @@ function luoJoukkueLiElement(joukkue) {
 function sortJoukkueet(joukkueet) {
     // Ensisijaisesti nimen mukaan
     joukkueet.sort((a, b) => compareNames(a.nimi, b.nimi, true));
-
-    // // Toissijaisesti sarjan mukaan
-    // joukkueet.sort((a, b) => compareNames(getSarjanNimi(a.sarja), getSarjanNimi(b.sarja)));
-    // console.log(joukkueet);
 }
 
 
@@ -395,7 +418,7 @@ function compareNames(a, b, asc) {
  * Hakee sarjaid:lla sarjan nimen.
  * @param {*} sarjaid 
  */
- function getSarjanNimi(sarjaid) {
+function getSarjanNimi(sarjaid) {
     for (const sarja of data.sarjat) {
         if (sarja.id === sarjaid) {
             return sarja.nimi;
@@ -409,11 +432,11 @@ function compareNames(a, b, asc) {
  * Luo kartan.
  * @returns Leaflet kartta.
  */
-function luoKartta(){
+function luoKartta() {
     let mymap = new L.map('map', {
         crs: L.TileLayer.MML.get3067Proj()
     }).setView([62.2333, 25.7333], 11);
-    L.tileLayer.mml_wmts({ layer: "maastokartta", key : "8203adda-2a75-4b26-b1b0-0811028b3cd2" }).addTo(mymap);
+    L.tileLayer.mml_wmts({ layer: "maastokartta", key: "8203adda-2a75-4b26-b1b0-0811028b3cd2" }).addTo(mymap);
     return mymap;
 }
 
@@ -432,7 +455,7 @@ function rainbow(numOfSteps, step) {
     let i = ~~(h * 6);
     let f = h * 6 - i;
     let q = 1 - f;
-    switch(i % 6){
+    switch (i % 6) {
         case 0: r = 1; g = f; b = 0; break;
         case 1: r = q; g = 1; b = 0; break;
         case 2: r = 0; g = 1; b = f; break;
@@ -446,11 +469,11 @@ function rainbow(numOfSteps, step) {
 
 
 // https://stackoverflow.com/a/39077686
-function rgbToHex (r, g, b) {
-return '#' + [r, g, b].map(x => {
-    const hex = parseInt(x).toString(16)
-    return hex.length === 1 ? '0' + hex : hex
-  }).join('');
-  
-  console.log(rgbToHex(0, 51, 255)); // '#0033ff'
+function rgbToHex(r, g, b) {
+    return '#' + [r, g, b].map(x => {
+        const hex = parseInt(x).toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+    }).join('');
+
+    //console.log(rgbToHex(0, 51, 255)); // '#0033ff'
 }
