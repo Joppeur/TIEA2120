@@ -61,3 +61,8 @@ body{
 .rastit > div > ul > li {
     min-width: 50px;
 }
+
+.dragMap > div * {
+    position: absolute;
+    list-style-type: none;
+}
